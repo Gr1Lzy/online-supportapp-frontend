@@ -1,8 +1,11 @@
-export default function App() {
-  return (
-    <div>
-      <h1>Hello World!</h1>
-      <h1></h1>
-    </div>
-  );
+import UserCard from "./components/UserCard";
+
+function App() {
+    return (
+        <div>
+            <UserCard user={}/>
+        </div>
+    );
 }
+
+export default App
