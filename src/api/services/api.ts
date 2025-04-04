@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { store } from "../redux/store";
-import { logout, refreshToken } from '../redux/slices/authSlice';
+import { store } from "../../redux/store";
+import { logout, refreshToken } from '../../redux/slices/authSlice';
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8090';
+const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
 const api = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
-    },
+    }
 });
 
 api.interceptors.request.use(

@@ -1,7 +1,7 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {PageDto, StatusRequestDto, TicketRequestDto, TicketResponseDto, UserIdRequestDto} from '../../types';
-import {ticketService} from "../../services/ticket-service/ticket.service.ts";
-import {supportTicketService} from "../../services/ticket-service/support.ticket.service.ts";
+import {ticketService} from "../../api/services/ticket-service/ticket.service.ts";
+import {supportTicketService} from "../../api/services/ticket-service/support.ticket.service.ts";
 
 interface TicketState {
     tickets: TicketResponseDto[];

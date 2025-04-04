@@ -1,5 +1,5 @@
 import api from '../api.ts';
-import {AdminUserResponseDto, PageDto, StatusRequestDto, UserIdRequestDto, UserUpdateRequestDto} from "../../types";
+import {AdminUserResponseDto, PageDto, StatusRequestDto, UserIdRequestDto, UserUpdateRequestDto} from "../../../types";
 
 export const supportTicketService = {
 

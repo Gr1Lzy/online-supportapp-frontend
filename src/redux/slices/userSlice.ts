@@ -4,7 +4,7 @@ import {
     UserResponseDto,
     PasswordRequestDto
 } from '../../types';
-import {userService} from "../../services/user-services/user.service.ts";
+import {userService} from "../../api/services/user-services/user.service.ts";
 
 interface UserState {
     currentUser: UserResponseDto | null;

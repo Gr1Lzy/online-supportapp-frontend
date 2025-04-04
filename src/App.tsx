@@ -1,10 +1,16 @@
-import "./api/assets/styles/global.css"
-import LoginPage from "./api/pages/LoginPage.tsx";
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
-  return (
-    <LoginPage/>
-  )
+    return (
+        <div>
+            <Routes>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="*" element={<LoginPage />} />
+            </Routes>
+        </div>
+    );
 }
 
-export default App
+export default App;

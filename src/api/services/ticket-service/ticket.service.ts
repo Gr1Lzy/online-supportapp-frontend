@@ -1,5 +1,5 @@
 import api from '../api.ts';
-import {PageDto, TicketRequestDto, TicketResponseDto} from "../../types";
+import {PageDto, TicketRequestDto, TicketResponseDto} from "../../../types";
 
 export const ticketService = {
 

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthRequestDto, AuthResponseDto, UserCreateRequestDto } from '../../types';
-import {authApi} from "../../services/user-services/auth.service.ts";
+import {authApi} from "../../api/services/user-services/auth.service.ts";
 
 interface AuthState {
     isAuthenticated: boolean;
@@ -20,7 +20,6 @@ const initialState: AuthState = {
     error: null,
 };
 
-// Async thunks
 export const login = createAsyncThunk(
     'auth/login',
     async (credentials: AuthRequestDto, { rejectWithValue }) => {
