@@ -1,4 +1,4 @@
-import api from '../api.ts';
+import api from '../api';
 import {AuthRequestDto, AuthResponseDto, UserCreateRequestDto} from "../../types";
 
 export const authApi = {

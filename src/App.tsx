@@ -1,8 +1,9 @@
 import "./api/assets/styles/global.css"
+import LoginPage from "./api/pages/LoginPage.tsx";
 
 function App() {
   return (
-    <h1>Hello World</h1>
+    <LoginPage/>
   )
 }
 

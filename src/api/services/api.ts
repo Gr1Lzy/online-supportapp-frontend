@@ -1,7 +1,8 @@
 import axios from 'axios';
-import {authApi} from "./user-services/auth.service.ts";
+import { store } from "../redux/store";
+import { logout, refreshToken } from '../redux/slices/authSlice';
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL
+const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:8090';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -32,22 +33,13 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const refreshToken = localStorage.getItem('refreshToken');
-                if (!refreshToken) {
-                    throw new Error('No refresh token');
-                }
+                const result = await store.dispatch(refreshToken()).unwrap();
 
-                const response = await authApi.refreshToken(refreshToken);
+                originalRequest.headers['Authorization'] = `Bearer ${result.access_token}`;
 
-                localStorage.setItem('token', response.access_token);
-                localStorage.setItem('refreshToken', response.refresh_token);
-
-                originalRequest.headers['Authorization'] = `Bearer ${response.access_token}`;
-
-                return axios(originalRequest);
+                return api(originalRequest);
             } catch (refreshError) {
-                localStorage.clear();
-                window.location.href = '/login';
+                store.dispatch(logout());
                 return Promise.reject(refreshError);
             }
         }

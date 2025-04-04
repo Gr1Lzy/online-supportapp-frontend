@@ -13,8 +13,10 @@ export const ticketService = {
         return response.data;
     },
 
-    getByTicketId: async (ticketId: string): Promise<void> => {
-        await api.get<PageDto<TicketRequestDto>>(`/api/tickets/${ticketId}`);
+    getByTicketId: async (ticketId: string): Promise<TicketResponseDto> => {
+        const response =
+            await api.get<TicketResponseDto>(`/api/tickets/${ticketId}`);
+        return response.data;
     },
 
     assignTicketOnCurrentUser: async (ticketId: string): Promise<void> => {
