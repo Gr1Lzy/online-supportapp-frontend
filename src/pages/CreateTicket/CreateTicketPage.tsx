@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { createTicket } from '../redux/slices/ticketSlice';
-import { AppDispatch, RootState } from '../redux/store';
+import { createTicket } from '../../redux/slices/ticketSlice.ts';
+import { AppDispatch, RootState } from '../../redux/store.ts';
+import './CreateTicketPage.css';
 
 const validationSchema = Yup.object({
     title: Yup.string().required('Title is required'),
