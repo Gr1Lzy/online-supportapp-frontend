@@ -20,6 +20,6 @@ export const ticketService = {
     },
 
     assignTicketOnCurrentUser: async (ticketId: string): Promise<void> => {
-        await api.patch(`/api/tickets/${ticketId}`);
+        await api.patch(`/api/tickets/${ticketId}/assign-on-me`);
     }
 };
