@@ -44,13 +44,24 @@ const LoginPage = () => {
 
     return (
         <div className="login-container">
-            <h1 className="login-title">Support App Login</h1>
+            <div className="login-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </div>
 
-            {error && <div className="form-error">{error}</div>}
+            <h1 className="login-title">Welcome to Support App</h1>
+            <p className="login-subtitle">Sign in to your account to continue</p>
+
+            {error && (
+                <div className="form-error">
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={formik.handleSubmit} className="login-form">
                 <div className="input-group">
-                    <label htmlFor="username" className="label">Username</label>
+                    <label htmlFor="username">Username</label>
                     <input
                         id="username"
                         name="username"
@@ -58,7 +69,7 @@ const LoginPage = () => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.username}
-                        className="input"
+                        placeholder="Enter your username"
                     />
                     {formik.touched.username && formik.errors.username ? (
                         <div className="error">{formik.errors.username}</div>
@@ -66,7 +77,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="input-group">
-                    <label htmlFor="password" className="label">Password</label>
+                    <label htmlFor="password">Password</label>
                     <div className="password-input-container">
                         <input
                             id="password"
@@ -75,7 +86,7 @@ const LoginPage = () => {
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             value={formik.values.password}
-                            className="input"
+                            placeholder="Enter your password"
                         />
                         <button
                             type="button"
@@ -90,8 +101,13 @@ const LoginPage = () => {
                     ) : null}
                 </div>
 
-                <button type="submit" disabled={loading} className="button">
-                    {loading ? 'Signing in...' : 'Sign In'}
+                <button type="submit" disabled={loading} className="login-button">
+                    {loading ? (
+                        <>
+                            <span className="loading-spinner"></span>
+                            Signing in...
+                        </>
+                    ) : 'Sign In'}
                 </button>
             </form>
 

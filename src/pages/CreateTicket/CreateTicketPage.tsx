@@ -6,10 +6,11 @@ import * as Yup from 'yup';
 import { createTicket } from '../../redux/slices/ticketSlice.ts';
 import { AppDispatch, RootState } from '../../redux/store.ts';
 import './CreateTicketPage.css';
+import {TicketRequestDto} from "../../types";
 
 const validationSchema = Yup.object({
-    title: Yup.string().required('Title is required'),
-    description: Yup.string().required('Description is required'),
+    title: Yup.string().required('Title is required').max(100, 'Title must be less than 100 characters'),
+    description: Yup.string().required('Description is required')
 });
 
 const CreateTicketPage = () => {
@@ -23,7 +24,7 @@ const CreateTicketPage = () => {
         navigate('/');
     }
 
-    const formik = useFormik({
+    const formik = useFormik<TicketRequestDto>({
         initialValues: {
             title: '',
             description: '',
@@ -32,9 +33,14 @@ const CreateTicketPage = () => {
         validationSchema,
         onSubmit: async (values) => {
             try {
-                const ticketData = {
-                    ...values,
+                const ticketData: TicketRequestDto = {
+                    title: values.title,
+                    description: values.description,
                 };
+
+                if (values.assignee_id && values.assignee_id.trim()) {
+                    ticketData.assignee_id = values.assignee_id.trim();
+                }
 
                 await dispatch(createTicket(ticketData)).unwrap();
                 setSuccessMessage('Ticket created successfully!');
@@ -48,153 +54,116 @@ const CreateTicketPage = () => {
         },
     });
 
-    const styles = {
-        container: {
-            maxWidth: '800px',
-            margin: '50px auto',
-            padding: '20px',
-            backgroundColor: '#ffffff',
-            borderRadius: '8px',
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        },
-        header: {
-            marginBottom: '20px',
-            color: '#333',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        form: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '15px',
-        },
-        inputGroup: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: '5px',
-        },
-        label: {
-            fontWeight: 'bold',
-            color: '#444',
-        },
-        input: {
-            padding: '10px',
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            fontSize: '16px',
-        },
-        textarea: {
-            padding: '10px',
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            fontSize: '16px',
-            minHeight: '150px',
-            resize: 'vertical' as const,
-        },
-        error: {
-            color: 'red',
-            fontSize: '14px',
-            marginTop: '5px',
-        },
-        success: {
-            color: 'green',
-            fontSize: '16px',
-            marginBottom: '15px',
-            fontWeight: 'bold',
-        },
-        button: {
-            padding: '12px',
-            backgroundColor: '#646cff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            marginTop: '10px',
-        },
-        buttonSecondary: {
-            padding: '12px',
-            backgroundColor: '#f3f3f3',
-            color: '#333',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            marginRight: '10px',
-        },
-        navigation: {
-            display: 'flex',
-            gap: '10px',
-        },
+    const handleCancel = () => {
+        navigate('/dashboard');
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <h1>Create Support Ticket</h1>
-                <div style={styles.navigation}>
-                    <button style={styles.buttonSecondary} onClick={() => navigate('/dashboard')}>
+        <div className="create-ticket-container">
+            <header className="create-ticket-header">
+                <h1 className="header-title">Create Support Ticket</h1>
+                <div className="header-actions">
+                    <button className="back-button" onClick={handleCancel}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
                         Back to Dashboard
                     </button>
                 </div>
+            </header>
+
+            <div className="create-ticket-card">
+                {successMessage && (
+                    <div className="success-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {successMessage}
+                    </div>
+                )}
+
+                {error && (
+                    <div className="error-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={formik.handleSubmit} className="form">
+                    <div className="input-group">
+                        <label htmlFor="title">Ticket Title *</label>
+                        <input
+                            id="title"
+                            name="title"
+                            type="text"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.title}
+                            placeholder="Enter a title for your ticket"
+                        />
+                        <div className="input-description">
+                            Brief summary of the issue (required)
+                        </div>
+                        {formik.touched.title && formik.errors.title ? (
+                            <div className="form-error">{formik.errors.title}</div>
+                        ) : null}
+                    </div>
+
+                    <div className="input-group">
+                        <label htmlFor="description">Detailed Description *</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.description}
+                            placeholder="Describe your issue in detail"
+                        />
+                        <div className="input-description">
+                            Include all relevant details about the issue (required)
+                        </div>
+                        {formik.touched.description && formik.errors.description ? (
+                            <div className="form-error">{formik.errors.description}</div>
+                        ) : null}
+                    </div>
+
+                    <div className="input-group">
+                        <label htmlFor="assignee_id">Assignee ID (Optional)</label>
+                        <input
+                            id="assignee_id"
+                            name="assignee_id"
+                            type="text"
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            value={formik.values.assignee_id}
+                            placeholder="Leave empty to auto-assign"
+                        />
+                        <div className="input-description">
+                            Optional: You can leave this field empty to let the system assign a support agent automatically
+                        </div>
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" disabled={loading} className="submit-button">
+                            {loading ? (
+                                <>
+                                    <span className="loading-spinner"></span>
+                                    Creating Ticket...
+                                </>
+                            ) : (
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Create Ticket
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {successMessage && <div style={styles.success}>{successMessage}</div>}
-            {error && <div style={styles.error}>{error}</div>}
-
-            <form onSubmit={formik.handleSubmit} style={styles.form}>
-                <div style={styles.inputGroup}>
-                    <label htmlFor="title" style={styles.label}>Ticket Title</label>
-                    <input
-                        id="title"
-                        name="title"
-                        type="text"
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        value={formik.values.title}
-                        style={styles.input}
-                        placeholder="Enter a title for your ticket"
-                    />
-                    {formik.touched.title && formik.errors.title ? (
-                        <div style={styles.error}>{formik.errors.title}</div>
-                    ) : null}
-                </div>
-
-                <div style={styles.inputGroup}>
-                    <label htmlFor="description" style={styles.label}>Description</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        value={formik.values.description}
-                        style={styles.textarea}
-                        placeholder="Describe your issue in detail"
-                    />
-                    {formik.touched.description && formik.errors.description ? (
-                        <div style={styles.error}>{formik.errors.description}</div>
-                    ) : null}
-                </div>
-
-                <div style={styles.inputGroup}>
-                    <label htmlFor="assignee_id" style={styles.label}>Assignee ID (Optional)</label>
-                    <input
-                        id="assignee_id"
-                        name="assignee_id"
-                        type="text"
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        value={formik.values.assignee_id}
-                        style={styles.input}
-                        placeholder="Leave empty to auto-assign"
-                    />
-                </div>
-
-                <button type="submit" disabled={loading} style={styles.button}>
-                    {loading ? 'Creating Ticket...' : 'Create Ticket'}
-                </button>
-            </form>
         </div>
     );
 };

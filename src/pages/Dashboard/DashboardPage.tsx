@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/slices/authSlice';
@@ -37,110 +37,190 @@ const DashboardPage = () => {
         navigate(`/tickets/${ticketId}`);
     };
 
-    const getStatusColor = (status: TicketStatus) => {
+    const getStatusClass = (status: TicketStatus) => {
         switch (status) {
             case TicketStatus.OPENED:
-                return '#28a745'; // Green
+                return 'status-opened';
             case TicketStatus.IN_PROGRESS:
-                return '#ffc107'; // Yellow
+                return 'status-in-progress';
             case TicketStatus.CLOSED:
-                return '#dc3545'; // Red
+                return 'status-closed';
             default:
-                return '#6c757d'; // Gray
+                return '';
         }
     };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Calculate ticket statistics
+    const ticketStats = useMemo(() => {
+        if (!tickets) return { total: 0, opened: 0, inProgress: 0, closed: 0 };
+
+        return {
+            total: tickets.length,
+            opened: tickets.filter(t => t.status === TicketStatus.OPENED).length,
+            inProgress: tickets.filter(t => t.status === TicketStatus.IN_PROGRESS).length,
+            closed: tickets.filter(t => t.status === TicketStatus.CLOSED).length,
+        };
+    }, [tickets]);
+
+    // Get user initials for avatar
+    const getUserInitials = () => {
+        if (!currentUser) return '';
+
+        const firstInitial = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '';
+        const lastInitial = currentUser.last_name ? currentUser.last_name.charAt(0).toUpperCase() : '';
+
+        return firstInitial + lastInitial || currentUser.username.charAt(0).toUpperCase();
     };
 
     return (
         <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1>Dashboard</h1>
-                <div className="actions-container">
-                    <button className="button" onClick={handleLogout}>
+            <header className="dashboard-header">
+                <h1 className="dashboard-title">Support Dashboard</h1>
+                <div className="header-actions">
+                    <button className="button button-secondary" onClick={handleLogout}>
                         Logout
                     </button>
                 </div>
-            </div>
+            </header>
 
-            <div className="dashboard-content">
-                <h2>Welcome to the Support Application</h2>
-                <p>Here you can view your account details and manage your support tickets.</p>
-
-                {userLoading ? (
-                    <p>Loading user information...</p>
-                ) : currentUser ? (
-                    <div className="user-profile">
-                        <h3>User Profile</h3>
-                        <div className="user-info">
-                            <span className="label">Username:</span>
-                            <span className="value">{currentUser.username}</span>
-
-                            <span className="label">Email:</span>
-                            <span className="value">{currentUser.email}</span>
-
-                            <span className="label">First Name:</span>
-                            <span className="value">{currentUser.first_name || 'Not provided'}</span>
-
-                            <span className="label">Last Name:</span>
-                            <span className="value">{currentUser.last_name || 'Not provided'}</span>
-
-                            <span className="label">User ID:</span>
-                            <span className="value">{currentUser.id}</span>
-                        </div>
-                    </div>
-                ) : (
-                    <p>No user information available. Please log in again.</p>
-                )}
-
-                {currentUser && (
-                    <button
-                        className="create-ticket-button"
-                        onClick={handleCreateTicket}
-                    >
-                        Create New Support Ticket
-                    </button>
-                )}
-            </div>
-
-            {/* Tickets Section */}
-            <div className="tickets-section">
-                <div className="tickets-header">
-                    <h2>Your Support Tickets</h2>
+            {userLoading || ticketsLoading ? (
+                <div className="dashboard-loading">
+                    <div className="spinner"></div>
                 </div>
-
-                {ticketsLoading ? (
-                    <div className="loading">Loading your tickets...</div>
-                ) : tickets && tickets.length > 0 ? (
-                    <div className="tickets-grid">
-                        {tickets.map(ticket => (
-                            <div
-                                key={ticket.id}
-                                className="ticket-card"
-                                onClick={() => handleViewTicket(ticket.id)}
-                            >
-                                <div className="ticket-status" style={{
-                                    backgroundColor: getStatusColor(ticket.status)
-                                }}>
-                                    {ticket.status}
+            ) : (
+                <div className="dashboard-main">
+                    {/* Sidebar with user profile */}
+                    <aside className="dashboard-sidebar">
+                        <div className="user-profile-card">
+                            <div className="user-profile-header">
+                                <div className="user-avatar">
+                                    {getUserInitials()}
                                 </div>
-                                <div className="ticket-title">{ticket.title}</div>
-                                <div className="ticket-description">{ticket.description}</div>
-                                <div className="ticket-footer">
-                                    Created: {formatDate(ticket.created_at)}
+                                <div>
+                                    <div className="user-name">
+                                        {currentUser?.first_name && currentUser?.last_name
+                                            ? `${currentUser.first_name} ${currentUser.last_name}`
+                                            : currentUser?.username || 'User'}
+                                    </div>
+                                    <div className="user-email">{currentUser?.email}</div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="no-tickets">
-                        You haven't created any tickets yet.
-                    </div>
-                )}
-            </div>
+
+                            <div className="user-info-list">
+                                <div className="user-info-item">
+                                    <span className="info-label">Username</span>
+                                    <span className="info-value">{currentUser?.username}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onClick={handleCreateTicket} className="create-ticket-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Create New Ticket
+                        </button>
+                    </aside>
+
+                    {/* Main content */}
+                    <main className="dashboard-content">
+                        {/* Stats cards */}
+                        <div className="stats-cards">
+                            <div className="stat-card">
+                                <div className="stat-card-header">
+                                    <div className="stat-card-icon stat-icon-tickets">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="stat-card-number">{ticketStats.total}</div>
+                                <div className="stat-card-title">Total Tickets</div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-card-header">
+                                    <div className="stat-card-icon stat-icon-open">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="stat-card-number">{ticketStats.opened}</div>
+                                <div className="stat-card-title">Open Tickets</div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-card-header">
+                                    <div className="stat-card-icon stat-icon-progress">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="stat-card-number">{ticketStats.inProgress}</div>
+                                <div className="stat-card-title">In Progress</div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-card-header">
+                                    <div className="stat-card-icon stat-icon-closed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="stat-card-number">{ticketStats.closed}</div>
+                                <div className="stat-card-title">Closed Tickets</div>
+                            </div>
+                        </div>
+
+                        {/* Tickets section */}
+                        <div>
+                            <div className="content-header">
+                                <h2>Your Support Tickets</h2>
+                            </div>
+
+                            {tickets && tickets.length > 0 ? (
+                                <div className="tickets-grid">
+                                    {tickets.map(ticket => (
+                                        <div
+                                            key={ticket.id}
+                                            className="ticket-card"
+                                            onClick={() => handleViewTicket(ticket.id)}
+                                        >
+                                            <div className={`ticket-status ${getStatusClass(ticket.status)}`}>
+                                                {ticket.status}
+                                            </div>
+                                            <h3 className="ticket-title">{ticket.title}</h3>
+                                            <div className="ticket-description">{ticket.description}</div>
+                                            <div className="ticket-footer">
+                                                <span>Created: {formatDate(ticket.created_at)}</span>
+                                                {ticket.assignee && (
+                                                    <span>Assignee: {ticket.assignee.username}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="no-tickets">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <p className="no-tickets-message">You haven't created any tickets yet.</p>
+                                    <button onClick={handleCreateTicket} className="button">Create Your First Ticket</button>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            )}
         </div>
     );
 };
