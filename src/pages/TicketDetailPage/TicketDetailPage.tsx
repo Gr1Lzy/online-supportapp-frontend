@@ -1,17 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchTicketById, assignTicketToMe } from '../../redux/slices/ticketSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { TicketStatus } from '../../types/ticket-service/status/TicketStatus';
+import { formatTicketStatus } from '../../utils/formatters';
+import ConfirmationDialog from '../../components/ConfirmationDialog/ConfirmationDialog';
 import './TicketDetailPage.css';
 
 const TicketDetailPage = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+
+    // Get current ticket and loading state from Redux store
     const { currentTicket, loading, error } = useSelector((state: RootState) => state.tickets);
-    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+    // Get authentication and current user info from Redux store
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const { currentUser } = useSelector((state: RootState) => state.user);
+
+    // State for confirmation dialog
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -24,11 +34,13 @@ const TicketDetailPage = () => {
         }
     }, [dispatch, ticketId, isAuthenticated, navigate]);
 
+    // Format date for display
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
+    // Format relative time (e.g. "2 hours ago")
     const formatRelativeTime = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -50,6 +62,7 @@ const TicketDetailPage = () => {
         }
     };
 
+    // Get CSS class for ticket status
     const getStatusClass = (status: TicketStatus) => {
         switch (status) {
             case TicketStatus.OPENED:
@@ -67,14 +80,37 @@ const TicketDetailPage = () => {
         navigate('/dashboard');
     };
 
+    const handleAssignToMeClick = () => {
+        if (currentTicket?.assignee && currentUser && currentTicket.assignee.id !== currentUser.id) {
+            setShowConfirmDialog(true);
+        } else if (!currentTicket?.assignee) {
+            handleAssignToMe();
+        }
+    };
+
     const handleAssignToMe = () => {
         if (ticketId) {
             dispatch(assignTicketToMe(ticketId))
                 .then(() => {
                     dispatch(fetchTicketById(ticketId));
+                    setShowConfirmDialog(false);
                 });
         }
     };
+
+    const handleCancelAssign = () => {
+        setShowConfirmDialog(false);
+    };
+
+    // Check if the ticket is assigned to the current user
+    const isAssignedToMe = Boolean(
+        currentUser?.id &&
+        currentTicket?.assignee?.id &&
+        currentTicket.assignee.id === currentUser.id
+    );
+
+    // Check if the ticket is closed
+    const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
 
     if (loading) {
         return (
@@ -129,13 +165,25 @@ const TicketDetailPage = () => {
             <header className="detail-header">
                 <h1 className="detail-title">Ticket Details</h1>
                 <div className="button-group">
-                    {(!currentTicket.assignee || currentTicket.assignee.id !== user?.id) && (
-                        <button className="assign-button" onClick={handleAssignToMe}>
+                    {!isTicketClosed && (
+                        <button
+                            className="assign-button"
+                            onClick={handleAssignToMeClick}
+                            disabled={isAssignedToMe}
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Assign to Me
                         </button>
+                    )}
+                    {isAssignedToMe && (
+                        <div className="assigned-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Assigned to You
+                        </div>
                     )}
                     <button className="back-button" onClick={handleBackToDashboard}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +204,7 @@ const TicketDetailPage = () => {
                             </div>
                         </div>
                         <div className={`ticket-status-badge ${getStatusClass(currentTicket.status)}`}>
-                            {currentTicket.status}
+                            {formatTicketStatus(currentTicket.status)}
                         </div>
                     </div>
 
@@ -210,7 +258,7 @@ const TicketDetailPage = () => {
                                 <div className="info-label">Status</div>
                                 <div className="info-value">
                                     <span className={`badge ${getStatusClass(currentTicket.status)}`}>
-                                        {currentTicket.status}
+                                        {formatTicketStatus(currentTicket.status)}
                                     </span>
                                 </div>
                             </div>
@@ -249,6 +297,14 @@ const TicketDetailPage = () => {
                                         <>
                                             <div>{currentTicket.assignee.username}</div>
                                             <div className="info-label">{currentTicket.assignee.email}</div>
+                                            {isAssignedToMe && (
+                                                <div className="assign-indicator">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    This is you
+                                                </div>
+                                            )}
                                         </>
                                     ) : (
                                         'Unassigned'
@@ -284,6 +340,21 @@ const TicketDetailPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog for reassigning ticket */}
+            <ConfirmationDialog
+                isOpen={showConfirmDialog}
+                title="Reassign Ticket"
+                onConfirm={handleAssignToMe}
+                onCancel={handleCancelAssign}
+                confirmButtonText="Yes, Assign to Me"
+                cancelButtonText="Cancel"
+            >
+                <p>
+                    This ticket is currently assigned to <strong>{currentTicket?.assignee?.username}</strong>.
+                    Are you sure you want to assign it to yourself?
+                </p>
+            </ConfirmationDialog>
         </div>
     );
 };

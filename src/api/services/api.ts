@@ -24,22 +24,63 @@ api.interceptors.request.use(
     }
 );
 
+let isRefreshing = false;
+let failedQueue: {resolve: (value: unknown) => void; reject: (reason?: any) => void}[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(promise => {
+        if (error) {
+            promise.reject(error);
+        } else {
+            promise.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
+        if (originalRequest.url?.includes('/refresh') ||
+            originalRequest.url?.includes('/login')) {
+            store.dispatch(logout());
+            window.location.href = '/';
+            return Promise.reject(error);
+        }
+
         if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(token => {
+                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                        return api(originalRequest);
+                    })
+                    .catch(err => {
+                        return Promise.reject(err);
+                    });
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
 
             try {
                 const result = await store.dispatch(refreshToken()).unwrap();
+                const token = result.access_token;
 
-                originalRequest.headers['Authorization'] = `Bearer ${result.access_token}`;
+                originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                processQueue(null, token);
 
+                isRefreshing = false;
                 return api(originalRequest);
             } catch (refreshError) {
+                processQueue(refreshError, null);
                 store.dispatch(logout());
+                window.location.href = '/';
+                isRefreshing = false;
                 return Promise.reject(refreshError);
             }
         }

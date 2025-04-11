@@ -5,6 +5,8 @@ import {supportTicketService} from "../../api/services/ticket-service/support.ti
 
 interface TicketState {
     tickets: TicketResponseDto[];
+    myCreatedTickets: TicketResponseDto[];
+    myAssignedTickets: TicketResponseDto[];
     currentTicket: TicketResponseDto | null;
     totalPages: number;
     currentPage: number;
@@ -16,6 +18,8 @@ interface TicketState {
 
 const initialState: TicketState = {
     tickets: [],
+    myCreatedTickets: [],
+    myAssignedTickets: [],
     currentTicket: null,
     totalPages: 0,
     currentPage: 0,
@@ -32,6 +36,28 @@ export const fetchTickets = createAsyncThunk(
             return await ticketService.getAll(page, size);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch tickets');
+        }
+    }
+);
+
+export const fetchMyCreatedTickets = createAsyncThunk(
+    'tickets/fetchMyCreated',
+    async ({ page = 0, size = 10 }: { page?: number; size?: number }, { rejectWithValue }) => {
+        try {
+            return await ticketService.getMyCreatedTickets(page, size);
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch your created tickets');
+        }
+    }
+);
+
+export const fetchMyAssignedTickets = createAsyncThunk(
+    'tickets/fetchMyAssigned',
+    async ({ page = 0, size = 10 }: { page?: number; size?: number }, { rejectWithValue }) => {
+        try {
+            return await ticketService.getMyAssignedTickets(page, size);
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch tickets assigned to you');
         }
     }
 );
@@ -115,6 +141,8 @@ const ticketSlice = createSlice({
         },
         clearTickets: (state) => {
             state.tickets = [];
+            state.myCreatedTickets = [];
+            state.myAssignedTickets = [];
             state.currentTicket = null;
         },
     },
@@ -131,6 +159,34 @@ const ticketSlice = createSlice({
             state.hasNext = action.payload.has_next;
         });
         builder.addCase(fetchTickets.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+
+        // My Created Tickets
+        builder.addCase(fetchMyCreatedTickets.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(fetchMyCreatedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+            state.myCreatedTickets = action.payload.content;
+        });
+        builder.addCase(fetchMyCreatedTickets.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+
+        // My Assigned Tickets
+        builder.addCase(fetchMyAssignedTickets.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(fetchMyAssignedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+            state.myAssignedTickets = action.payload.content;
+        });
+        builder.addCase(fetchMyAssignedTickets.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload as string;
         });

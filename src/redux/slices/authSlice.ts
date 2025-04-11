@@ -1,19 +1,20 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AuthRequestDto, AuthResponseDto, UserCreateRequestDto } from '../../types';
+import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {AuthRequestDto, AuthResponseDto, UserCreateRequestDto, UserResponseDto} from '../../types';
 import {authApi} from "../../api/services/user-services/auth.service.ts";
 
 interface AuthState {
     isAuthenticated: boolean;
-    user: any | null;
+    user: UserResponseDto | null;
     token: string | null;
     refreshToken: string | null;
     loading: boolean;
     error: string | null;
 }
 
+// Initialize state with values from localStorage if available
 const initialState: AuthState = {
     isAuthenticated: !!localStorage.getItem('token'),
-    user: null,
+    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
     token: localStorage.getItem('token'),
     refreshToken: localStorage.getItem('refreshToken'),
     loading: false,
@@ -24,8 +25,7 @@ export const login = createAsyncThunk(
     'auth/login',
     async (credentials: AuthRequestDto, { rejectWithValue }) => {
         try {
-            const response = await authApi.login(credentials);
-            return response;
+            return await authApi.login(credentials);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Login failed');
         }
@@ -55,8 +55,7 @@ export const refreshToken = createAsyncThunk(
         }
 
         try {
-            const response = await authApi.refreshToken(currentRefreshToken);
-            return response;
+            return await authApi.refreshToken(currentRefreshToken);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Token refresh failed');
         }
@@ -98,7 +97,7 @@ const authSlice = createSlice({
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
         },
-        setUser: (state, action) => {
+        setUser: (state, action: PayloadAction<UserResponseDto>) => {
             state.user = action.payload;
             localStorage.setItem('user', JSON.stringify(action.payload));
         },

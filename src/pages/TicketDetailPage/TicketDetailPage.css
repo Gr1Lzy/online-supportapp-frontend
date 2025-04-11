@@ -22,6 +22,7 @@
 .button-group {
     display: flex;
     gap: 10px;
+    align-items: center;
 }
 
 .back-button {
@@ -73,6 +74,14 @@
     height: 18px;
 }
 
+.assign-button:disabled {
+    background-color: var(--neutral-300);
+    color: var(--neutral-500);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .detail-content {
     display: grid;
     grid-template-columns: 7fr 3fr;
@@ -121,17 +130,17 @@
     text-transform: uppercase;
 }
 
-.status-opened {
+.ticket-status-badge.status-opened {
     background-color: rgba(46, 204, 113, 0.2);
     color: var(--secondary-dark);
 }
 
-.status-in-progress {
+.ticket-status-badge.status-in-progress {
     background-color: rgba(243, 156, 18, 0.2);
     color: #d35400;
 }
 
-.status-closed {
+.ticket-status-badge.status-closed {
     background-color: rgba(231, 76, 60, 0.2);
     color: #c0392b;
 }
@@ -342,4 +351,42 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* New styles for assignment indicators */
+.assigned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: rgba(46, 204, 113, 0.1);
+    color: var(--secondary-dark);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+}
+
+.assigned-badge svg {
+    width: 18px;
+    height: 18px;
+    color: var(--secondary-color);
+}
+
+.assign-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: var(--font-xs);
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.assign-indicator svg {
+    color: var(--secondary-color);
+}
+
+.assign-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
 }

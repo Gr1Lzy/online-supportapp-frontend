@@ -4,7 +4,8 @@ import {
     UserResponseDto,
     PasswordRequestDto
 } from '../../types';
-import {userService} from "../../api/services/user-services/user.service.ts";
+import { userService } from "../../api/services/user-services/user.service.ts";
+import { setUser } from './authSlice.ts';
 
 interface UserState {
     currentUser: UserResponseDto | null;
@@ -28,9 +29,12 @@ const initialState: UserState = {
 
 export const fetchCurrentUser = createAsyncThunk(
     'user/fetchCurrent',
-    async (_, { rejectWithValue }) => {
+    async (_, { dispatch, rejectWithValue }) => {
         try {
-            return await userService.getCurrentUser();
+            const userData = await userService.getCurrentUser();
+            // Also update auth user state for consistency
+            dispatch(setUser(userData));
+            return userData;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch current user');
         }
@@ -103,6 +107,7 @@ const userSlice = createSlice({
         builder.addCase(fetchUserById.fulfilled, (state, action: PayloadAction<UserResponseDto>) => {
             state.loading = false;
 
+            // Add user to users array if not already present
             if (!state.users.some(user => user.id === action.payload.id)) {
                 state.users.push(action.payload);
             }

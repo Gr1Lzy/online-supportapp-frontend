@@ -21,5 +21,17 @@ export const ticketService = {
 
     assignTicketOnCurrentUser: async (ticketId: string): Promise<void> => {
         await api.patch(`/api/tickets/${ticketId}/assign-on-me`);
+    },
+
+    getMyCreatedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
+        const response =
+            await api.get<PageDto<TicketResponseDto>>(`/api/tickets/my-created?page=${page}&size=${size}`);
+        return response.data;
+    },
+
+    getMyAssignedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
+        const response =
+            await api.get<PageDto<TicketResponseDto>>(`/api/tickets/my-assigned?page=${page}&size=${size}`);
+        return response.data;
     }
 };
