@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchTicketById, assignTicketToMe } from '../../redux/slices/ticketSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { TicketStatus } from '../../types/ticket-service/status/TicketStatus';
+import { formatTicketStatus } from '../../utils/formatters';
 import './TicketDetailPage.css';
 
 const TicketDetailPage = () => {
@@ -76,6 +77,12 @@ const TicketDetailPage = () => {
         }
     };
 
+    // Check if the current user is already assigned to this ticket
+    const isAssignedToMe = currentTicket?.assignee && user && currentTicket.assignee.id === user.id;
+
+    // Check if the ticket is closed and shouldn't be reassigned
+    const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
+
     if (loading) {
         return (
             <div className="ticket-detail-container">
@@ -129,13 +136,24 @@ const TicketDetailPage = () => {
             <header className="detail-header">
                 <h1 className="detail-title">Ticket Details</h1>
                 <div className="button-group">
-                    {(!currentTicket.assignee || currentTicket.assignee.id !== user?.id) && (
-                        <button className="assign-button" onClick={handleAssignToMe}>
+                    {!isAssignedToMe && !isTicketClosed && (
+                        <button
+                            className="assign-button"
+                            onClick={handleAssignToMe}
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Assign to Me
                         </button>
+                    )}
+                    {isAssignedToMe && (
+                        <div className="assigned-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Assigned to You
+                        </div>
                     )}
                     <button className="back-button" onClick={handleBackToDashboard}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +174,7 @@ const TicketDetailPage = () => {
                             </div>
                         </div>
                         <div className={`ticket-status-badge ${getStatusClass(currentTicket.status)}`}>
-                            {currentTicket.status}
+                            {formatTicketStatus(currentTicket.status)}
                         </div>
                     </div>
 
@@ -210,7 +228,7 @@ const TicketDetailPage = () => {
                                 <div className="info-label">Status</div>
                                 <div className="info-value">
                                     <span className={`badge ${getStatusClass(currentTicket.status)}`}>
-                                        {currentTicket.status}
+                                        {formatTicketStatus(currentTicket.status)}
                                     </span>
                                 </div>
                             </div>
@@ -249,6 +267,14 @@ const TicketDetailPage = () => {
                                         <>
                                             <div>{currentTicket.assignee.username}</div>
                                             <div className="info-label">{currentTicket.assignee.email}</div>
+                                            {isAssignedToMe && (
+                                                <div className="assign-indicator">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    This is you
+                                                </div>
+                                            )}
                                         </>
                                     ) : (
                                         'Unassigned'

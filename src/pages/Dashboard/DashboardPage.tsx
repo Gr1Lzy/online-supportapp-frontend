@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/slices/authSlice';
@@ -6,6 +6,8 @@ import { fetchCurrentUser } from '../../redux/slices/userSlice';
 import { fetchTickets } from '../../redux/slices/ticketSlice';
 import { AppDispatch, RootState } from '../../redux/store';
 import { TicketStatus } from '../../types/ticket-service/status/TicketStatus';
+import TicketFilter from '../../components/TicketFilter/TicketFilter';
+import { formatTicketStatus } from '../../utils/formatters';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
@@ -14,6 +16,7 @@ const DashboardPage = () => {
     const { currentUser, loading: userLoading } = useSelector((state: RootState) => state.user);
     const { tickets, loading: ticketsLoading } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>('ALL');
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -37,6 +40,10 @@ const DashboardPage = () => {
         navigate(`/tickets/${ticketId}`);
     };
 
+    const handleFilterChange = (status: TicketStatus | 'ALL') => {
+        setStatusFilter(status);
+    };
+
     const getStatusClass = (status: TicketStatus) => {
         switch (status) {
             case TicketStatus.OPENED:
@@ -54,6 +61,17 @@ const DashboardPage = () => {
         const date = new Date(dateString);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
+
+    // Filter tickets based on selected status
+    const filteredTickets = useMemo(() => {
+        if (!tickets) return [];
+
+        if (statusFilter === 'ALL') {
+            return tickets;
+        }
+
+        return tickets.filter(ticket => ticket.status === statusFilter);
+    }, [tickets, statusFilter]);
 
     // Calculate ticket statistics
     const ticketStats = useMemo(() => {
@@ -75,6 +93,12 @@ const DashboardPage = () => {
         const lastInitial = currentUser.last_name ? currentUser.last_name.charAt(0).toUpperCase() : '';
 
         return firstInitial + lastInitial || currentUser.username.charAt(0).toUpperCase();
+    };
+
+    // Helper to get formatted status name for the page title
+    const getFilterTitle = (filter: TicketStatus | 'ALL'): string => {
+        if (filter === 'ALL') return 'Your Support Tickets';
+        return `Your ${formatTicketStatus(filter)} Tickets`;
     };
 
     return (
@@ -180,22 +204,28 @@ const DashboardPage = () => {
                             </div>
                         </div>
 
+                        {/* Ticket filter */}
+                        <TicketFilter
+                            onFilterChange={handleFilterChange}
+                            currentFilter={statusFilter}
+                        />
+
                         {/* Tickets section */}
                         <div>
                             <div className="content-header">
-                                <h2>Your Support Tickets</h2>
+                                <h2>{getFilterTitle(statusFilter)}</h2>
                             </div>
 
-                            {tickets && tickets.length > 0 ? (
+                            {filteredTickets.length > 0 ? (
                                 <div className="tickets-grid">
-                                    {tickets.map(ticket => (
+                                    {filteredTickets.map(ticket => (
                                         <div
                                             key={ticket.id}
                                             className="ticket-card"
                                             onClick={() => handleViewTicket(ticket.id)}
                                         >
                                             <div className={`ticket-status ${getStatusClass(ticket.status)}`}>
-                                                {ticket.status}
+                                                {formatTicketStatus(ticket.status)}
                                             </div>
                                             <h3 className="ticket-title">{ticket.title}</h3>
                                             <div className="ticket-description">{ticket.description}</div>
@@ -213,7 +243,11 @@ const DashboardPage = () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    <p className="no-tickets-message">You haven't created any tickets yet.</p>
+                                    <p className="no-tickets-message">
+                                        {statusFilter === 'ALL'
+                                            ? 'You haven\'t created any tickets yet.'
+                                            : `You don't have any ${formatTicketStatus(statusFilter).toLowerCase()} tickets.`}
+                                    </p>
                                     <button onClick={handleCreateTicket} className="button">Create Your First Ticket</button>
                                 </div>
                             )}

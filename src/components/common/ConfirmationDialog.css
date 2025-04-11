@@ -1,0 +1,112 @@
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirmation-dialog {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: dialog-appear 0.3s ease-out;
+}
+
+@keyframes dialog-appear {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.confirmation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.confirmation-header h3 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: 0;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--neutral-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.close-button:hover {
+    color: var(--neutral-800);
+}
+
+.confirmation-body {
+    padding: 24px;
+    color: var(--neutral-700);
+    font-size: var(--font-base);
+    line-height: 1.6;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    gap: 12px;
+    border-top: 1px solid var(--neutral-200);
+}
+
+.cancel-button {
+    padding: 8px 16px;
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+    background-color: var(--neutral-200);
+}
+
+.confirm-button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-button:hover {
+    background-color: var(--primary-dark);
+}
