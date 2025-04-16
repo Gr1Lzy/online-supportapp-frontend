@@ -1,0 +1,23 @@
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.status-opened {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: var(--secondary-dark);
+}
+
+.status-badge.status-in-progress {
+    background-color: rgba(243, 156, 18, 0.2);
+    color: #d35400;
+}
+
+.status-badge.status-closed {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #c0392b;
+}

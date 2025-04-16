@@ -1,8 +1,8 @@
 import { ReactNode, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../../redux/store';
-import { logout } from '../../redux/slices/authSlice';
+import { RootState, AppDispatch } from '../../store';
+import { logout } from '../../store/slices/authSlice';
 
 interface ProtectedRouteProps {
     children: ReactNode;

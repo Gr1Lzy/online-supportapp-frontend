@@ -1,27 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchTicketById, assignTicketToMe } from '../../redux/slices/ticketSlice';
-import { AppDispatch, RootState } from '../../redux/store';
-import { TicketStatus } from '../../types/ticket-service/status/TicketStatus';
-import { formatTicketStatus } from '../../utils/formatters';
-import ConfirmationDialog from '../../components/ConfirmationDialog/ConfirmationDialog';
+import { fetchTicketById, assignTicketToMe } from '../../store/slices/ticketSlice';
+import { fetchCurrentUser } from '../../store/slices/userSlice';
+import { AppDispatch, RootState } from '../../store';
+import { formatTicketStatus, getStatusClassName } from '../../utils/formatters';
+import { formatDateTime, formatRelativeTime } from '../../utils/dateUtils';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog/ConfirmationDialog';
 import './TicketDetailPage.css';
+import StatusBadge from "../../components/common/StatusBadge/StatusBadge.tsx";
+import {TicketStatus} from "../../types";
 
 const TicketDetailPage = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
-    // Get current ticket and loading state from Redux store
     const { currentTicket, loading, error } = useSelector((state: RootState) => state.tickets);
 
-    // Get authentication and current user info from Redux store
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-    const { currentUser } = useSelector((state: RootState) => state.user);
+    const { currentUser, loading: userLoading } = useSelector((state: RootState) => state.user);
 
-    // State for confirmation dialog
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [isAssignedToMe, setIsAssignedToMe] = useState(false);
+    const [assignmentError, setAssignmentError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -30,89 +32,62 @@ const TicketDetailPage = () => {
         }
 
         if (ticketId) {
+            dispatch(fetchCurrentUser());
             dispatch(fetchTicketById(ticketId));
         }
     }, [dispatch, ticketId, isAuthenticated, navigate]);
 
-    // Format date for display
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    };
-
-    // Format relative time (e.g. "2 hours ago")
-    const formatRelativeTime = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-        if (diffInSeconds < 60) {
-            return 'just now';
-        } else if (diffInSeconds < 3600) {
-            const minutes = Math.floor(diffInSeconds / 60);
-            return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-        } else if (diffInSeconds < 86400) {
-            const hours = Math.floor(diffInSeconds / 3600);
-            return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-        } else if (diffInSeconds < 604800) {
-            const days = Math.floor(diffInSeconds / 86400);
-            return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-        } else {
-            return formatDate(dateString);
+    useEffect(() => {
+        if (currentTicket && currentUser) {
+            const assigned = Boolean(
+                currentUser.id &&
+                currentTicket.assignee?.id &&
+                currentTicket.assignee.id === currentUser.id
+            );
+            setIsAssignedToMe(assigned);
         }
-    };
-
-    // Get CSS class for ticket status
-    const getStatusClass = (status: TicketStatus) => {
-        switch (status) {
-            case TicketStatus.OPENED:
-                return 'status-opened';
-            case TicketStatus.IN_PROGRESS:
-                return 'status-in-progress';
-            case TicketStatus.CLOSED:
-                return 'status-closed';
-            default:
-                return '';
-        }
-    };
+    }, [currentTicket, currentUser]);
 
     const handleBackToDashboard = () => {
         navigate('/dashboard');
     };
 
-    const handleAssignToMeClick = () => {
+    const handleAssignToMeClick = async () => {
         if (currentTicket?.assignee && currentUser && currentTicket.assignee.id !== currentUser.id) {
             setShowConfirmDialog(true);
         } else if (!currentTicket?.assignee) {
-            handleAssignToMe();
+            try {
+                await handleAssignToMe();
+            } catch (error) {
+                console.error('Assignment failed in click handler:', error);
+            }
         }
     };
 
-    const handleAssignToMe = () => {
-        if (ticketId) {
-            dispatch(assignTicketToMe(ticketId))
-                .then(() => {
-                    dispatch(fetchTicketById(ticketId));
-                    setShowConfirmDialog(false);
-                });
+    const handleAssignToMe = async () => {
+        if (ticketId && !isAssignedToMe) {
+            try {
+                setAssignmentError(null);
+                await dispatch(assignTicketToMe(ticketId)).unwrap();
+                await dispatch(fetchTicketById(ticketId)).unwrap();
+                setShowConfirmDialog(false);
+            } catch (error: any) {
+                console.error('Failed to assign ticket:', error);
+                setAssignmentError(
+                    error?.message || 'Failed to assign ticket. Please try again.'
+                );
+            }
         }
     };
 
     const handleCancelAssign = () => {
         setShowConfirmDialog(false);
+        setAssignmentError(null);
     };
 
-    // Check if the ticket is assigned to the current user
-    const isAssignedToMe = Boolean(
-        currentUser?.id &&
-        currentTicket?.assignee?.id &&
-        currentTicket.assignee.id === currentUser.id
-    );
-
-    // Check if the ticket is closed
     const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
 
-    if (loading) {
+    if (loading || userLoading) {
         return (
             <div className="ticket-detail-container">
                 <div className="loading-container">
@@ -165,11 +140,10 @@ const TicketDetailPage = () => {
             <header className="detail-header">
                 <h1 className="detail-title">Ticket Details</h1>
                 <div className="button-group">
-                    {!isTicketClosed && (
+                    {!isTicketClosed && !isAssignedToMe && (
                         <button
                             className="assign-button"
                             onClick={handleAssignToMeClick}
-                            disabled={isAssignedToMe}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -203,7 +177,7 @@ const TicketDetailPage = () => {
                                 Reported by: <strong>{currentTicket.reporter?.username || 'Unknown'}</strong>
                             </div>
                         </div>
-                        <div className={`ticket-status-badge ${getStatusClass(currentTicket.status)}`}>
+                        <div className={`ticket-status-badge ${getStatusClassName(currentTicket.status)}`}>
                             {formatTicketStatus(currentTicket.status)}
                         </div>
                     </div>
@@ -248,18 +222,16 @@ const TicketDetailPage = () => {
                         <div className="info-list">
                             <div className="info-item">
                                 <div className="info-label">Created</div>
-                                <div className="info-value">{formatDate(currentTicket.created_at)}</div>
+                                <div className="info-value">{formatDateTime(currentTicket.created_at)}</div>
                             </div>
                             <div className="info-item">
                                 <div className="info-label">Last Updated</div>
-                                <div className="info-value">{formatDate(currentTicket.updated_at)}</div>
+                                <div className="info-value">{formatDateTime(currentTicket.updated_at)}</div>
                             </div>
                             <div className="info-item">
                                 <div className="info-label">Status</div>
                                 <div className="info-value">
-                                    <span className={`badge ${getStatusClass(currentTicket.status)}`}>
-                                        {formatTicketStatus(currentTicket.status)}
-                                    </span>
+                                    <StatusBadge status={currentTicket.status} />
                                 </div>
                             </div>
                             <div className="info-item">
@@ -354,6 +326,14 @@ const TicketDetailPage = () => {
                     This ticket is currently assigned to <strong>{currentTicket?.assignee?.username}</strong>.
                     Are you sure you want to assign it to yourself?
                 </p>
+                {assignmentError && (
+                    <div className="error-message" style={{ marginTop: '10px' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {assignmentError}
+                    </div>
+                )}
             </ConfirmationDialog>
         </div>
     );

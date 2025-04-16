@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { login } from '../../redux/slices/authSlice';
-import { AppDispatch, RootState } from '../../redux/store';
+import { login } from '../../store/slices/authSlice';
+import { AppDispatch, RootState } from '../../store';
 import './LoginPage.css';
 
 const validationSchema = Yup.object({

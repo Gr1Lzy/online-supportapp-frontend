@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { createTicket } from '../../redux/slices/ticketSlice.ts';
-import { AppDispatch, RootState } from '../../redux/store.ts';
+import { createTicket } from '../../store/slices/ticketSlice.ts';
+import { AppDispatch, RootState } from '../../store';
 import './CreateTicketPage.css';
 import {TicketRequestDto} from "../../types";
 
