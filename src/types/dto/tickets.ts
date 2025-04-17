@@ -8,7 +8,7 @@ export interface LogResponseDto {
 }
 
 export interface UserIdRequestDto {
-    userId: string;
+    user_id: string;
 }
 
 export interface CommentResponseDto {

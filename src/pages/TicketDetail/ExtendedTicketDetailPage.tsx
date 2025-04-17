@@ -66,7 +66,7 @@ const ExtendedTicketDetailPage = () => {
 
         try {
             setOperationError(null);
-            const userId: UserIdRequestDto = { userId: currentUser.id };
+            const userId: UserIdRequestDto = { user_id: currentUser.id };
             await dispatch(assignTicketToUser({ ticketId, userId })).unwrap();
             await dispatch(fetchTicketById(ticketId)).unwrap();
         } catch (error: any) {
@@ -82,7 +82,7 @@ const ExtendedTicketDetailPage = () => {
 
         try {
             setOperationError(null);
-            const userIdRequest: UserIdRequestDto = { userId };
+            const userIdRequest: UserIdRequestDto = { user_id: userId };
             await dispatch(assignTicketToUser({ ticketId, userId: userIdRequest })).unwrap();
             await dispatch(fetchTicketById(ticketId)).unwrap();
             setShowUserSelectionModal(false);

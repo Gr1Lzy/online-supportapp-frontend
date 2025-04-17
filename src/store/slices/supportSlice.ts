@@ -59,6 +59,7 @@ export const assignTicketToUser = createAsyncThunk(
             await supportTicketService.assignOnUser(ticketId, userId);
             return { ticketId, userId };
         } catch (error: any) {
+            console.error('Error assigning ticket:', error);
             return rejectWithValue(handleApiError(error, 'Failed to assign ticket to user'));
         }
     }
