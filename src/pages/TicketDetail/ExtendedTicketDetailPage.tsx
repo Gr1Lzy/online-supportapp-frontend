@@ -3,7 +3,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
 import {fetchTicketById} from '../../store/slices/ticketSlice';
 import {fetchCurrentUser} from '../../store/slices/userSlice';
-import {assignTicketToUser, unassignTicket, updateTicketStatus} from '../../store/slices/supportSlice';
+import {assignTicketToUser, updateTicketStatus, unassignTicket} from '../../store/slices/supportSlice';
 import {AppDispatch, RootState} from '../../store';
 import {formatTicketStatus, getStatusClassName} from '../../utils/formatters';
 import {formatDateTime, formatRelativeTime} from '../../utils/dateUtils';
@@ -27,7 +27,7 @@ const ExtendedTicketDetailPage = () => {
 
     const [showUserSelectionModal, setShowUserSelectionModal] = useState(false);
     const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
-    const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+    const [showAssignToMeConfirmation, setShowAssignToMeConfirmation] = useState(false);
     const [isAssignedToMe, setIsAssignedToMe] = useState(false);
     const [hasSupportRole, setHasSupportRole] = useState(false);
     const [operationError, setOperationError] = useState<string | null>(null);
@@ -61,7 +61,17 @@ const ExtendedTicketDetailPage = () => {
         navigate('/dashboard');
     };
 
-    const handleAssignToMeClick = async () => {
+    const handleAssignToMeClick = () => {
+        if (!currentUser || !ticketId) return;
+
+        if (currentTicket?.assignee && currentTicket.assignee.id !== currentUser.id) {
+            setShowAssignToMeConfirmation(true);
+        } else {
+            executeAssignToMe();
+        }
+    };
+
+    const executeAssignToMe = async () => {
         if (!currentUser || !ticketId) return;
 
         try {
@@ -69,6 +79,7 @@ const ExtendedTicketDetailPage = () => {
             const userId: UserIdRequestDto = { user_id: currentUser.id };
             await dispatch(assignTicketToUser({ ticketId, userId })).unwrap();
             await dispatch(fetchTicketById(ticketId)).unwrap();
+            setShowAssignToMeConfirmation(false);
         } catch (error: any) {
             console.error('Failed to assign ticket:', error);
             setOperationError(
@@ -101,7 +112,6 @@ const ExtendedTicketDetailPage = () => {
             setOperationError(null);
             await dispatch(unassignTicket(ticketId)).unwrap();
             await dispatch(fetchTicketById(ticketId)).unwrap();
-            setShowUnassignDialog(false);
         } catch (error: any) {
             console.error('Failed to unassign ticket:', error);
             setOperationError(
@@ -205,7 +215,8 @@ const ExtendedTicketDetailPage = () => {
                             {currentTicket.assignee && (
                                 <button
                                     className="support-action-button unassign-button"
-                                    onClick={() => setShowUnassignDialog(true)}
+                                    onClick={handleUnassignTicket}
+                                    disabled={supportLoading}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -421,19 +432,19 @@ const ExtendedTicketDetailPage = () => {
                 currentStatus={currentTicket.status}
             />
 
-            {/* Unassign Confirmation Dialog */}
+            {/* Assign to Me Confirmation Dialog */}
             <ConfirmationDialog
-                isOpen={showUnassignDialog}
-                title="Unassign Ticket"
-                onConfirm={handleUnassignTicket}
-                onCancel={() => setShowUnassignDialog(false)}
-                confirmButtonText="Yes, Unassign"
+                isOpen={showAssignToMeConfirmation}
+                title="Reassign Ticket"
+                onConfirm={executeAssignToMe}
+                onCancel={() => setShowAssignToMeConfirmation(false)}
+                confirmButtonText="Yes, Assign to Me"
                 cancelButtonText="Cancel"
             >
                 <p>
-                    Are you sure you want to unassign this ticket from <strong>{currentTicket.assignee?.username}</strong>?
+                    This ticket is currently assigned to <strong>{currentTicket.assignee?.username}</strong>.
                 </p>
-                <p>The ticket will return to the unassigned pool.</p>
+                <p>Are you sure you want to reassign this ticket to yourself?</p>
             </ConfirmationDialog>
         </div>
     );
