@@ -1,10 +1,10 @@
 import clients from '../api/clients.ts';
-import {StatusRequestDto, UserIdRequestDto, UserUpdateRequestDto} from "../../../types";
+import {StatusRequestDto, UserIdRequestDto} from "../../../types";
 
 export const supportTicketService = {
 
     assignOnUser: async (ticketId: string, userId: UserIdRequestDto): Promise<void> => {
-        await clients.patch<UserUpdateRequestDto>(`/api/support/tickets/${ticketId}`, userId);
+        await clients.patch<void>(`/api/support/tickets/${ticketId}`, userId);
     },
 
     unassignUser: async (ticketId: string): Promise<void> => {
