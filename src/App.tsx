@@ -1,10 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import CreateTicketPage from "./pages/CreateTicket/CreateTicketPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
-import TicketDetailPage from "./pages/TicketDetail/TicketDetailPage";
+import ExtendedTicketDetailPage from "./pages/TicketDetail/ExtendedTicketDetailPage";
+import SupportTicketPage from "./pages/SupportTicket/SupportTicketPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import { UserRole } from "./types";
 import './assets/styles/global.css';
 
 function App() {
@@ -24,7 +26,12 @@ function App() {
                 } />
                 <Route path="/tickets/:ticketId" element={
                     <ProtectedRoute>
-                        <TicketDetailPage />
+                        <ExtendedTicketDetailPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/support/tickets" element={
+                    <ProtectedRoute requiredRoles={[UserRole.SUPPORT, UserRole.ADMIN]}>
+                        <SupportTicketPage />
                     </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFoundPage />} />

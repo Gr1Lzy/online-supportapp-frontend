@@ -1,29 +1,36 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { fetchTicketById, assignTicketToMe } from '../../store/slices/ticketSlice';
-import { fetchCurrentUser } from '../../store/slices/userSlice';
-import { AppDispatch, RootState } from '../../store';
-import { formatTicketStatus, getStatusClassName } from '../../utils/formatters';
-import { formatDateTime, formatRelativeTime } from '../../utils/dateUtils';
+import {useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigate, useParams} from 'react-router-dom';
+import {fetchTicketById} from '../../store/slices/ticketSlice';
+import {fetchCurrentUser} from '../../store/slices/userSlice';
+import {assignTicketToUser, unassignTicket, updateTicketStatus} from '../../store/slices/supportSlice';
+import {AppDispatch, RootState} from '../../store';
+import {formatTicketStatus, getStatusClassName} from '../../utils/formatters';
+import {formatDateTime, formatRelativeTime} from '../../utils/dateUtils';
+import {hasAnyRole} from '../../utils/jwtUtils';
+import StatusBadge from "../../components/common/StatusBadge/StatusBadge";
+import UserSelectionModal from '../../components/modals/UserSelectionModal';
+import StatusChangeModal from '../../components/modals/StatusChangeModal';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog/ConfirmationDialog';
-import './TicketDetailPage.css';
-import StatusBadge from "../../components/common/StatusBadge/StatusBadge.tsx";
-import {TicketStatus} from "../../types";
+import {TicketStatus, UserIdRequestDto, UserRole} from '../../types';
+import './ExtendedTicketDetailPage.css';
 
-const TicketDetailPage = () => {
+const ExtendedTicketDetailPage = () => {
     const { ticketId } = useParams<{ ticketId: string }>();
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
     const { currentTicket, loading, error } = useSelector((state: RootState) => state.tickets);
-
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const { currentUser, loading: userLoading } = useSelector((state: RootState) => state.user);
+    const { loading: supportLoading } = useSelector((state: RootState) => state.support);
 
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [showUserSelectionModal, setShowUserSelectionModal] = useState(false);
+    const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
+    const [showUnassignDialog, setShowUnassignDialog] = useState(false);
     const [isAssignedToMe, setIsAssignedToMe] = useState(false);
-    const [assignmentError, setAssignmentError] = useState<string | null>(null);
+    const [hasSupportRole, setHasSupportRole] = useState(false);
+    const [operationError, setOperationError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -45,6 +52,8 @@ const TicketDetailPage = () => {
                 currentTicket.assignee.id === currentUser.id
             );
             setIsAssignedToMe(assigned);
+
+            setHasSupportRole(hasAnyRole([UserRole.SUPPORT, UserRole.ADMIN]));
         }
     }, [currentTicket, currentUser]);
 
@@ -53,36 +62,67 @@ const TicketDetailPage = () => {
     };
 
     const handleAssignToMeClick = async () => {
-        if (currentTicket?.assignee && currentUser && currentTicket.assignee.id !== currentUser.id) {
-            setShowConfirmDialog(true);
-        } else if (!currentTicket?.assignee) {
-            try {
-                await handleAssignToMe();
-            } catch (error) {
-                console.error('Assignment failed in click handler:', error);
-            }
+        if (!currentUser || !ticketId) return;
+
+        try {
+            setOperationError(null);
+            const userId: UserIdRequestDto = { userId: currentUser.id };
+            await dispatch(assignTicketToUser({ ticketId, userId })).unwrap();
+            await dispatch(fetchTicketById(ticketId)).unwrap();
+        } catch (error: any) {
+            console.error('Failed to assign ticket:', error);
+            setOperationError(
+                error?.message || 'Failed to assign ticket. Please try again.'
+            );
         }
     };
 
-    const handleAssignToMe = async () => {
-        if (ticketId && !isAssignedToMe) {
-            try {
-                setAssignmentError(null);
-                await dispatch(assignTicketToMe(ticketId)).unwrap();
-                await dispatch(fetchTicketById(ticketId)).unwrap();
-                setShowConfirmDialog(false);
-            } catch (error: any) {
-                console.error('Failed to assign ticket:', error);
-                setAssignmentError(
-                    error?.message || 'Failed to assign ticket. Please try again.'
-                );
-            }
+    const handleAssignToUser = async (userId: string) => {
+        if (!ticketId) return;
+
+        try {
+            setOperationError(null);
+            const userIdRequest: UserIdRequestDto = { userId };
+            await dispatch(assignTicketToUser({ ticketId, userId: userIdRequest })).unwrap();
+            await dispatch(fetchTicketById(ticketId)).unwrap();
+            setShowUserSelectionModal(false);
+        } catch (error: any) {
+            console.error('Failed to assign ticket:', error);
+            setOperationError(
+                error?.message || 'Failed to assign ticket. Please try again.'
+            );
         }
     };
 
-    const handleCancelAssign = () => {
-        setShowConfirmDialog(false);
-        setAssignmentError(null);
+    const handleUnassignTicket = async () => {
+        if (!ticketId) return;
+
+        try {
+            setOperationError(null);
+            await dispatch(unassignTicket(ticketId)).unwrap();
+            await dispatch(fetchTicketById(ticketId)).unwrap();
+            setShowUnassignDialog(false);
+        } catch (error: any) {
+            console.error('Failed to unassign ticket:', error);
+            setOperationError(
+                error?.message || 'Failed to unassign ticket. Please try again.'
+            );
+        }
+    };
+
+    const handleStatusChange = async (status: TicketStatus) => {
+        if (!ticketId) return;
+        try {
+            await dispatch(updateTicketStatus({
+                ticketId,
+                status: { status }
+            }));
+            setShowStatusChangeModal(false);
+        } catch (error: any) {
+            setOperationError(
+                error?.message || 'Failed to update ticket status. Please try again.'
+            );
+        }
     };
 
     const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
@@ -140,10 +180,48 @@ const TicketDetailPage = () => {
             <header className="detail-header">
                 <h1 className="detail-title">Ticket Details</h1>
                 <div className="button-group">
-                    {!isTicketClosed && !isAssignedToMe && (
+                    {hasSupportRole && (
+                        <>
+                            <button
+                                className="support-action-button status-button"
+                                onClick={() => setShowStatusChangeModal(true)}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Change Status
+                            </button>
+
+                            <button
+                                className="support-action-button assign-button"
+                                onClick={() => setShowUserSelectionModal(true)}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Assign Ticket
+                            </button>
+
+                            {currentTicket.assignee && (
+                                <button
+                                    className="support-action-button unassign-button"
+                                    onClick={() => setShowUnassignDialog(true)}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Unassign
+                                </button>
+                            )}
+                        </>
+                    )}
+
+                    {/* Regular user - assign to me button */}
+                    {!hasSupportRole && !isTicketClosed && !isAssignedToMe && (
                         <button
                             className="assign-button"
                             onClick={handleAssignToMeClick}
+                            disabled={supportLoading}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -151,6 +229,7 @@ const TicketDetailPage = () => {
                             Assign to Me
                         </button>
                     )}
+
                     {isAssignedToMe && (
                         <div className="assigned-badge">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,6 +238,7 @@ const TicketDetailPage = () => {
                             Assigned to You
                         </div>
                     )}
+
                     <button className="back-button" onClick={handleBackToDashboard}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -167,6 +247,15 @@ const TicketDetailPage = () => {
                     </button>
                 </div>
             </header>
+
+            {operationError && (
+                <div className="error-message" style={{ marginBottom: '20px' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {operationError}
+                </div>
+            )}
 
             <div className="detail-content">
                 <div className="ticket-main">
@@ -315,30 +404,39 @@ const TicketDetailPage = () => {
                 </div>
             </div>
 
-            {/* Confirmation Dialog for reassigning ticket */}
+            {/* User Selection Modal */}
+            <UserSelectionModal
+                isOpen={showUserSelectionModal}
+                onClose={() => setShowUserSelectionModal(false)}
+                onUserSelect={handleAssignToUser}
+                currentAssigneeId={currentTicket.assignee?.id}
+                title="Assign Ticket to User"
+            />
+
+            {/* Status Change Modal */}
+            <StatusChangeModal
+                isOpen={showStatusChangeModal}
+                onClose={() => setShowStatusChangeModal(false)}
+                onStatusChange={handleStatusChange}
+                currentStatus={currentTicket.status}
+            />
+
+            {/* Unassign Confirmation Dialog */}
             <ConfirmationDialog
-                isOpen={showConfirmDialog}
-                title="Reassign Ticket"
-                onConfirm={handleAssignToMe}
-                onCancel={handleCancelAssign}
-                confirmButtonText="Yes, Assign to Me"
+                isOpen={showUnassignDialog}
+                title="Unassign Ticket"
+                onConfirm={handleUnassignTicket}
+                onCancel={() => setShowUnassignDialog(false)}
+                confirmButtonText="Yes, Unassign"
                 cancelButtonText="Cancel"
             >
                 <p>
-                    This ticket is currently assigned to <strong>{currentTicket?.assignee?.username}</strong>.
-                    Are you sure you want to assign it to yourself?
+                    Are you sure you want to unassign this ticket from <strong>{currentTicket.assignee?.username}</strong>?
                 </p>
-                {assignmentError && (
-                    <div className="error-message" style={{ marginTop: '10px' }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {assignmentError}
-                    </div>
-                )}
+                <p>The ticket will return to the unassigned pool.</p>
             </ConfirmationDialog>
         </div>
     );
 };
 
-export default TicketDetailPage;
+export default ExtendedTicketDetailPage;

@@ -7,8 +7,9 @@ import {fetchMyAssignedTickets, fetchMyCreatedTickets} from '../../store/slices/
 import {AppDispatch, RootState} from '../../store';
 import TicketGrid from '../../components/common/TicketGrid/TicketGrid';
 import TicketFilter from '../../components/common/TicketFilter/TicketFilter';
-import {TicketResponseDto, TicketStatus} from '../../types';
+import {TicketResponseDto, TicketStatus, UserRole} from '../../types';
 import {formatTicketStatus} from '../../utils/formatters';
+import {hasAnyRole} from '../../utils/jwtUtils';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
@@ -24,6 +25,9 @@ const DashboardPage = () => {
         loading: ticketsLoading
     } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+    // Use JWT to check roles instead of currentUser object
+    const hasSupportRole = hasAnyRole([UserRole.SUPPORT, UserRole.ADMIN]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -141,6 +145,15 @@ const DashboardPage = () => {
                             </svg>
                             Create New Ticket
                         </button>
+
+                        {hasSupportRole && (
+                            <button onClick={() => navigate('/support/tickets')} className="support-ticket-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                See All Tickets
+                            </button>
+                        )}
                     </aside>
 
                     {/* Main content */}

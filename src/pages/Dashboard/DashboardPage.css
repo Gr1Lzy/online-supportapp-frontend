@@ -278,3 +278,41 @@
         transform: rotate(360deg);
     }
 }
+
+.create-ticket-button, .support-ticket-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-ticket-button {
+    background-color: var(--secondary-color);
+}
+
+.support-ticket-button {
+    background-color: var(--info);
+}
+
+.create-ticket-button:hover {
+    background-color: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.support-ticket-button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.create-ticket-button svg, .support-ticket-button svg {
+    width: 20px;
+    height: 20px;
+}

@@ -21,8 +21,8 @@ export interface UserResponseDto {
     email: string
     first_name: string
     last_name: string
+    roles?: string[]
 }
-
 export interface UserUpdateRequestDto {
     email?: string;
     first_name?: string;

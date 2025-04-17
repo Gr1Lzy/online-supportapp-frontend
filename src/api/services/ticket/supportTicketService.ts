@@ -1,5 +1,5 @@
 import clients from '../api/clients.ts';
-import {AdminUserResponseDto, PageDto, StatusRequestDto, UserIdRequestDto, UserUpdateRequestDto} from "../../../types";
+import {StatusRequestDto, UserIdRequestDto, UserUpdateRequestDto} from "../../../types";
 
 export const supportTicketService = {
 
@@ -12,6 +12,6 @@ export const supportTicketService = {
     },
 
     updateStatus: async (ticketId: string, status: StatusRequestDto): Promise<void> => {
-        await clients.patch<PageDto<AdminUserResponseDto>>(`/api/support/tickets/${ticketId}/status-update`, status);
-    }
+        await clients.patch<void>(`/api/support/tickets/${ticketId}/status-update`, status);
+    },
 };
