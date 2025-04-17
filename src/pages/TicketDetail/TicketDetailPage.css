@@ -155,6 +155,8 @@
     white-space: pre-wrap;
     color: var(--neutral-800);
     margin-bottom: 30px;
+    overflow: visible;
+    display: block;
 }
 
 .meta-title {
@@ -389,4 +391,19 @@
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+.ticket-body .ticket-description {
+    font-size: var(--font-base);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--neutral-800);
+    margin-bottom: 30px;
+    overflow: visible;
+    display: block;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+    max-height: none;
+    word-wrap: break-word;
+    word-break: break-word;
 }

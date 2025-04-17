@@ -70,6 +70,8 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    max-height: 2.8em;
+    word-break: break-word;
 }
 
 .ticket-description {
@@ -80,8 +82,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    max-height: 3em;
+    margin-bottom: 5px;
 }
 
 .ticket-footer {

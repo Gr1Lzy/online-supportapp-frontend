@@ -183,7 +183,9 @@ const TicketDetailPage = () => {
                     </div>
 
                     <div className="ticket-body">
-                        <div className="ticket-description">{currentTicket.description}</div>
+                        <div className="ticket-description">
+                            {currentTicket.description}
+                        </div>
                     </div>
 
                     <div className="comments-section">

@@ -40,8 +40,15 @@ const TicketGrid = ({ tickets, title, emptyMessage, maxItems = 6 }: TicketGridPr
                             <div className={`ticket-status ${getStatusClassName(ticket.status)}`}>
                                 {formatTicketStatus(ticket.status)}
                             </div>
-                            <h3 className="ticket-title">{ticket.title}</h3>
-                            <div className="ticket-description">{ticket.description}</div>
+                            <h3 className="ticket-title">
+                                {ticket.title.length > 20
+                                ? `${ticket.description.substring(0, 20)}...`
+                                : ticket.description}</h3>
+                            <div className="ticket-description">
+                                {ticket.description.length > 40
+                                    ? `${ticket.description.substring(0, 40)}...`
+                                    : ticket.description}
+                            </div>
                             <div className="ticket-footer">
                                 <span>Created: {formatDate(ticket.created_at)}</span>
                                 {ticket.assignee && (

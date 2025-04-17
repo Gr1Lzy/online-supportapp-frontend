@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import CreateTicketPage from "./pages/CreateTicket/CreateTicketPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
-import TicketDetailPage from "./pages/TicketDetailPage/TicketDetailPage";
+import TicketDetailPage from "./pages/TicketDetail/TicketDetailPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
