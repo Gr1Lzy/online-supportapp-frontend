@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
+    CommentCreateRequestDto,
     PageDto,
     StatusRequestDto,
     TicketRequestDto,
@@ -9,6 +10,7 @@ import {
 } from '../../types';
 import {ticketService} from "../../api/services/ticket/ticketService";
 import {supportTicketService} from "../../api/services/ticket/supportTicketService";
+import {commentService} from "../../api/services/comment/commentService";
 import {handleApiError, setPending, setRejected} from '../../utils/reduxHelpers';
 
 interface TicketState {
@@ -153,6 +155,46 @@ export const updateTicketStatus = createTicketThunk<
     'Failed to update ticket status'
 );
 
+export const addComment = createTicketThunk<
+    { ticketId: string; commentData: CommentCreateRequestDto },
+    void
+>(
+    'tickets/addComment',
+    async ({ticketId, commentData}, {dispatch}) => {
+        await commentService.addComment(ticketId, commentData);
+        dispatch(fetchTicketById(ticketId));
+    },
+    'Failed to add comment'
+);
+
+export const updateComment = createTicketThunk<
+    { commentId: string; commentData: CommentCreateRequestDto },
+    void
+>(
+    'tickets/updateComment',
+    async ({commentId, commentData}, {dispatch, getState}) => {
+        await commentService.updateComment(commentId, commentData);
+        const state = getState() as any;
+        const ticketId = state.tickets.currentTicket?.id;
+        if (ticketId) {
+            dispatch(fetchTicketById(ticketId));
+        }
+    },
+    'Failed to update comment'
+);
+
+export const deleteComment = createTicketThunk<
+    { commentId: string; ticketId: string },
+    void
+>(
+    'tickets/deleteComment',
+    async ({commentId, ticketId}, {dispatch}) => {
+        await commentService.deleteComment(commentId);
+        dispatch(fetchTicketById(ticketId));
+    },
+    'Failed to delete comment'
+);
+
 const ticketSlice = createSlice({
     name: 'tickets',
     initialState,
@@ -216,7 +258,15 @@ const ticketSlice = createSlice({
         });
         builder.addCase(createTicket.rejected, setRejected);
 
-        [assignTicketToMe, assignTicketToUser, unassignTicket, updateTicketStatus].forEach(thunk => {
+        [
+            assignTicketToMe,
+            assignTicketToUser,
+            unassignTicket,
+            updateTicketStatus,
+            addComment,
+            updateComment,
+            deleteComment
+        ].forEach(thunk => {
             builder.addCase(thunk.pending, setPending);
             builder.addCase(thunk.fulfilled, (state) => {
                 state.loading = false;

@@ -24,3 +24,7 @@ export interface RoleRequestDto {
 export interface StatusRequestDto {
     status: TicketStatus
 }
+
+export interface CommentCreateRequestDto {
+    text: string;
+}
