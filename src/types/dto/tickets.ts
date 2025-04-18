@@ -12,6 +12,7 @@ export interface UserIdRequestDto {
 }
 
 export interface CommentResponseDto {
+    id: string
     text: string
     author: UserResponseDto
     created_date: string

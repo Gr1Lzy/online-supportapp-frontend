@@ -1,0 +1,81 @@
+.comment-form {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.comment-form-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--neutral-800);
+}
+
+.comment-input-container {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.comment-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 16px;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-base);
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.comment-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+.comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.cancel-button {
+    padding: 8px 16px;
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+    background-color: var(--neutral-200);
+}
+
+.submit-button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submit-button:hover {
+    background-color: var(--primary-dark);
+}
+
+.submit-button:disabled {
+    background-color: var(--neutral-300);
+    color: var(--neutral-500);
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: var(--font-sm);
+    margin-top: 8px;
+}

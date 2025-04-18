@@ -114,7 +114,6 @@ const supportSlice = createSlice({
             if (action.payload.page === 0) {
                 state.allTickets = action.payload.content;
             } else {
-                // Append new tickets to the existing list, avoiding duplicates
                 const existingIds = new Set(state.allTickets.map(ticket => ticket.id));
                 const newTickets = action.payload.content.filter(ticket => !existingIds.has(ticket.id));
                 state.allTickets = [...state.allTickets, ...newTickets];
@@ -125,7 +124,6 @@ const supportSlice = createSlice({
         });
         builder.addCase(fetchAllTickets.rejected, setRejected);
 
-        // Handle fetchUsers
         builder.addCase(fetchUsers.pending, (state) => {
             state.loadingUsers = true;
             state.error = null;
@@ -139,7 +137,6 @@ const supportSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Handle assignTicketToUser, unassignTicket, updateTicketStatus
         [assignTicketToUser, unassignTicket, updateTicketStatus].forEach(thunk => {
             builder.addCase(thunk.pending, (state) => {
                 state.loading = true;

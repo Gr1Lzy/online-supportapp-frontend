@@ -8,10 +8,10 @@ import {AppDispatch, RootState} from '../../store';
 import {formatTicketStatus, getStatusClassName} from '../../utils/formatters';
 import {formatDateTime, formatRelativeTime} from '../../utils/dateUtils';
 import {hasAnyRole} from '../../utils/jwtUtils';
-import StatusBadge from "../../components/common/StatusBadge/StatusBadge";
 import UserSelectionModal from '../../components/modals/UserSelectionModal';
 import StatusChangeModal from '../../components/modals/StatusChangeModal';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog/ConfirmationDialog';
+import CommentSection from '../../components/common/CommentSection/CommentSection';
 import {TicketStatus, UserIdRequestDto, UserRole} from '../../types';
 import './ExtendedTicketDetailPage.css';
 
@@ -288,29 +288,14 @@ const ExtendedTicketDetailPage = () => {
                         </div>
                     </div>
 
-                    <div className="comments-section">
-                        <h3 className="comments-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                            </svg>
-                            Comments
-                        </h3>
-                        {currentTicket.comments && currentTicket.comments.length > 0 ? (
-                            <div className="comment-list">
-                                {currentTicket.comments.map((comment, index) => (
-                                    <div key={index} className="comment-card">
-                                        <div className="comment-header">
-                                            <div className="comment-author">{comment.author?.username || 'Unknown User'}</div>
-                                            <div className="comment-date">{formatRelativeTime(comment.created_date)}</div>
-                                        </div>
-                                        <div className="comment-body">{comment.text}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="no-items">No comments yet</div>
-                        )}
-                    </div>
+                    {/* Comment Section */}
+                    <CommentSection
+                        ticketId={currentTicket.id}
+                        comments={currentTicket.comments || []}
+                        currentUser={currentUser}
+                        loading={supportLoading}
+                        error={operationError}
+                    />
                 </div>
 
                 <div className="ticket-sidebar">
@@ -325,20 +310,6 @@ const ExtendedTicketDetailPage = () => {
                             <div className="info-item">
                                 <div className="info-label">Created</div>
                                 <div className="info-value">{formatDateTime(currentTicket.created_at)}</div>
-                            </div>
-                            <div className="info-item">
-                                <div className="info-label">Last Updated</div>
-                                <div className="info-value">{formatDateTime(currentTicket.updated_at)}</div>
-                            </div>
-                            <div className="info-item">
-                                <div className="info-label">Status</div>
-                                <div className="info-value">
-                                    <StatusBadge status={currentTicket.status} />
-                                </div>
-                            </div>
-                            <div className="info-item">
-                                <div className="info-label">ID</div>
-                                <div className="info-value">{currentTicket.id}</div>
                             </div>
                         </div>
                     </div>
