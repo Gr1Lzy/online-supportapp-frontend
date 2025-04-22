@@ -6,6 +6,8 @@ import SupportTicketPage from "./pages/SupportTicket/SupportTicketPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import AdminLoginPage from "./pages/AdminLogin/AdminLoginPage";
+import AdminPage from "./pages/AdminPage/AdminPage";
 import { UserRole } from "./types";
 import './assets/styles/global.css';
 
@@ -14,6 +16,7 @@ function App() {
         <div className="app">
             <Routes>
                 <Route path="/" element={<LoginPage />} />
+                <Route path="/admin/login" element={<AdminLoginPage />} />
                 <Route path="/dashboard" element={
                     <ProtectedRoute>
                         <DashboardPage />
@@ -32,6 +35,11 @@ function App() {
                 <Route path="/support/tickets" element={
                     <ProtectedRoute requiredRoles={[UserRole.SUPPORT, UserRole.ADMIN]}>
                         <SupportTicketPage />
+                    </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                    <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                        <AdminPage />
                     </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFoundPage />} />

@@ -1,0 +1,345 @@
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(52, 152, 219, 0.2);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}/* Pagination Controls */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 15px;
+}
+
+.pagination-button {
+    padding: 8px 16px;
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-button:hover {
+    background-color: var(--neutral-200);
+    transform: translateY(-2px);
+}
+
+.pagination-button:disabled {
+    background-color: var(--neutral-200);
+    color: var(--neutral-500);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pagination-info {
+    color: var(--neutral-700);
+    font-weight: 500;
+}/* Admin Page Specific Styles */
+.admin-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.admin-title {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    color: var(--neutral-900);
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: var(--neutral-200);
+    transform: translateY(-2px);
+}
+
+.back-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tab-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+    background-color: var(--neutral-200);
+    transform: translateY(-2px);
+}
+
+.tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.tab-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Role Badge Styles */
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+    color: var(--neutral-900);
+}
+
+.role-badge-user {
+    border-color: #10b981; /* Green */
+}
+
+.role-badge-admin {
+    border-color: #ef4444; /* Red */
+}
+
+.role-badge-support {
+    border-color: #3b82f6; /* Blue */
+}
+
+.role-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    cursor: not-allowed;
+}
+
+.role-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--neutral-200);
+}
+
+.error-message {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--danger);
+    padding: 16px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.error-message svg {
+    width: 20px;
+    height: 20px;
+    color: var(--danger);
+}
+
+.user-management-section {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+}
+
+.user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.user-management-title {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--neutral-800);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+    border: 1px solid var(--neutral-200);
+    padding: 12px;
+    text-align: left;
+}
+
+.user-table th {
+    background-color: var(--neutral-100);
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+.user-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-button.edit {
+    background-color: var(--info);
+    color: white;
+}
+
+.action-button.delete {
+    background-color: var(--danger);
+    color: white;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-container {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.modal-header h3 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: 0;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--neutral-500);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.role-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.role-button {
+    padding: 8px 16px;
+    border-radius: var(--border-radius-md);
+    background-color: var(--neutral-100);
+    color: var(--neutral-700);
+    border: 1px solid var(--neutral-300);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.role-button:hover {
+    background-color: var(--neutral-200);
+}
+
+.role-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}

@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice.ts';
 import ticketReducer from './slices/ticketSlice.ts';
 import userReducer from './slices/userSlice.ts';
 import supportReducer from './slices/supportSlice.ts';
+import adminReducer from  './slices/adminSlice.ts'
 
 export const index = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const index = configureStore({
         tickets: ticketReducer,
         user: userReducer,
         support: supportReducer,
+        admin: adminReducer
     },
 });
 

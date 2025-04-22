@@ -1,0 +1,183 @@
+/* Admin Login Page Specific Styles */
+.admin-login-container {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 40px;
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.admin-login-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+}
+
+.admin-login-logo svg {
+    width: 80px;
+    height: 80px;
+    color: var(--primary-dark);
+    stroke-width: 1.5;
+}
+
+.admin-login-title {
+    font-size: var(--font-2xl);
+    text-align: center;
+    margin-bottom: var(--space-4);
+    color: var(--neutral-900);
+    font-weight: 700;
+}
+
+.admin-login-subtitle {
+    text-align: center;
+    color: var(--neutral-600);
+    margin-bottom: var(--space-6);
+    font-size: var(--font-base);
+}
+
+.admin-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.admin-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.admin-input-group label {
+    font-weight: 600;
+    color: var(--neutral-700);
+    font-size: var(--font-sm);
+}
+
+.admin-input-group input {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-base);
+    transition: all 0.2s ease;
+}
+
+.admin-input-group input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+.admin-input-group input.error-input {
+    border-color: var(--danger);
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.toggle-password-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--neutral-500);
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password-button:hover {
+    color: var(--neutral-800);
+}
+
+.admin-login-button {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.admin-login-button:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-login-button:disabled {
+    background-color: var(--neutral-300);
+    color: var(--neutral-500);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.back-link {
+    margin-top: var(--space-6);
+    text-align: center;
+}
+
+.back-to-login {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: var(--font-sm);
+    transition: color 0.2s ease;
+}
+
+.back-to-login:hover {
+    color: white;
+    background-color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.back-to-login svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+}
+
+.loading-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    width: 20px;
+    height: 20px;
+    animation: spin 0.8s linear infinite;
+    border-radius: 50%;
+}
+
+.form-error-message {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--danger);
+    padding: var(--space-3);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-sm);
+}
+
+.form-error-message svg {
+    width: 20px;
+    height: 20px;
+    color: var(--danger);
+}

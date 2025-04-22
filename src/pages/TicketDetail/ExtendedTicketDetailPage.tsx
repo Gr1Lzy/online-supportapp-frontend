@@ -30,7 +30,7 @@ const ExtendedTicketDetailPage = () => {
     const [showAssignToMeConfirmation, setShowAssignToMeConfirmation] = useState(false);
     const [isAssignedToMe, setIsAssignedToMe] = useState(false);
     const [hasSupportRole, setHasSupportRole] = useState(false);
-    const [operationError, setOperationError] = useState<string | null>(null);
+    const [operationError, setOperationError] = useState<string | null>(null)
 
     useEffect(() => {
         if (!isAuthenticated) {

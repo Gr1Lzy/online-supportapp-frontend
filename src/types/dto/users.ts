@@ -2,9 +2,9 @@ export interface AdminUserResponseDto {
     id: string
     username: string
     email: string
-    first_nme: string
+    first_name: string
     last_name: string
-    role: string[]
+    roles: string[]
 }
 
 export interface UserCreateRequestDto {
@@ -23,6 +23,7 @@ export interface UserResponseDto {
     last_name: string
     roles?: string[]
 }
+
 export interface UserUpdateRequestDto {
     email?: string;
     first_name?: string;

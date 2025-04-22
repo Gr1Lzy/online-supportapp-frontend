@@ -22,7 +22,6 @@ const StatusChangeModal = ({
     if (!isOpen) return null;
 
     const handleStatusSelect = (status: TicketStatus) => {
-        // Prevent selecting the current status
         if (status !== currentStatus) {
             setSelectedStatus(status === selectedStatus ? null : status);
             setError(null);

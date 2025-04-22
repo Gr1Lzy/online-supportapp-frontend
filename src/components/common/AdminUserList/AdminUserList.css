@@ -1,0 +1,293 @@
+.user-management-section {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+}
+
+.user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.user-management-title {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--neutral-800);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+    border: 1px solid var(--neutral-200);
+    padding: 12px;
+    text-align: left;
+}
+
+.user-table th {
+    background-color: var(--neutral-100);
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+.user-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-button.edit {
+    background-color: var(--info);
+    color: white;
+}
+
+.action-button.delete {
+    background-color: var(--danger);
+    color: white;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Role badges */
+.roles-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: var(--font-xs);
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    /* Angled corners effect */
+    clip-path: polygon(
+            10% 0%,
+            100% 0%,
+            100% 70%,
+            90% 100%,
+            0% 100%,
+            0% 30%
+    );
+}
+
+.role-badge-user {
+    border-color: #10b981; /* Green */
+}
+
+.role-badge-admin {
+    border-color: #ef4444; /* Red */
+}
+
+.role-badge-support {
+    border-color: #3b82f6; /* Blue */
+}
+
+.role-user {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: #27ae60;
+    border: 1px solid rgba(46, 204, 113, 0.5);
+}
+
+.role-support {
+    background-color: rgba(52, 152, 219, 0.15);
+    color: #2980b9;
+    border: 1px solid rgba(52, 152, 219, 0.5);
+}
+
+.role-admin {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #c0392b;
+    border: 1px solid rgba(231, 76, 60, 0.5);
+}
+
+/* Role buttons in modal */
+.role-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.role-button {
+    padding: 8px 16px;
+    border-radius: var(--border-radius-md);
+    background-color: var(--neutral-100);
+    color: var(--neutral-700);
+    border: 1px solid var(--neutral-300);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    min-width: 100px;
+    text-align: center;
+    /* Angled corners effect */
+    clip-path: polygon(
+            10% 0%,
+            100% 0%,
+            100% 70%,
+            90% 100%,
+            0% 100%,
+            0% 30%
+    );
+}
+
+.role-user-button {
+    background-color: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #27ae60;
+}
+
+.role-support-button {
+    background-color: rgba(52, 152, 219, 0.1);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    color: #2980b9;
+}
+
+.role-admin-button {
+    background-color: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #c0392b;
+}
+
+.role-button:hover {
+    filter: brightness(0.95);
+}
+
+.role-button.active {
+    filter: brightness(1.1);
+    font-weight: 600;
+}
+
+.role-user-button.active {
+    background-color: rgba(46, 204, 113, 0.25);
+    border: 1px solid rgba(46, 204, 113, 0.6);
+}
+
+.role-support-button.active {
+    background-color: rgba(52, 152, 219, 0.25);
+    border: 1px solid rgba(52, 152, 219, 0.6);
+}
+
+.role-admin-button.active {
+    background-color: rgba(231, 76, 60, 0.25);
+    border: 1px solid rgba(231, 76, 60, 0.6);
+}
+
+/* Disabled role button */
+.role-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(30%);
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.role-button:disabled::after {
+    content: " ✓";
+    margin-left: 5px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-container {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.modal-header h3 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: 0;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: var(--neutral-500);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-body p {
+    margin-bottom: 16px;
+    color: var(--neutral-600);
+}
+
+.modal-body .role-description {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 12px;
+    background-color: var(--neutral-50);
+    border-radius: var(--border-radius-md);
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Error message */
+.error-message {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--danger);
+    padding: 16px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.error-message svg {
+    width: 20px;
+    height: 20px;
+    color: var(--danger);
+}
