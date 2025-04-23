@@ -1,0 +1,90 @@
+/* Ticket item specific styles */
+.ticket-item {
+    display: flex;
+    flex-direction: column;
+    height: 220px;
+    position: relative;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    border-top: 3px solid var(--color-primary);
+}
+
+.ticket-item-status {
+    position: absolute;
+    top: var(--spacing-3);
+    right: var(--spacing-3);
+}
+
+.ticket-item-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    margin-bottom: var(--spacing-2);
+    margin-right: 80px; /* Space for status badge */
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-height: 2.8em;
+}
+
+.ticket-item-description {
+    font-size: var(--font-sm);
+    color: var(--color-neutral-600);
+    line-height: 1.5;
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    max-height: 4.5em;
+    margin-bottom: var(--spacing-2);
+}
+
+.ticket-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-3);
+    margin-top: auto;
+    border-top: 1px solid var(--color-neutral-200);
+    font-size: var(--font-xs);
+    color: var(--color-neutral-500);
+}
+
+.ticket-item-date {
+    white-space: nowrap;
+}
+
+.ticket-item-assignee {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.ticket-item-assignee-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+}
+
+.ticket-item-assignee-label {
+    color: var(--color-neutral-600);
+}
+
+.ticket-item-assignee-name {
+    font-weight: 500;
+    color: var(--color-neutral-700);
+}
+
+/* Status-based border colors */
+.ticket-item[data-status="OPENED"] {
+    border-top-color: var(--color-success);
+}
+
+.ticket-item[data-status="IN_PROGRESS"] {
+    border-top-color: var(--color-warning);
+}
+
+.ticket-item[data-status="CLOSED"] {
+    border-top-color: var(--color-danger);
+}

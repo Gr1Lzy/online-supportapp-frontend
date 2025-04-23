@@ -1,23 +1,38 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { createTicket } from '../../store/slices/ticketSlice.ts';
+import { createTicket } from '../../store/slices/ticketSlice';
 import { AppDispatch, RootState } from '../../store';
+import { TicketRequestDto } from '../../types';
+
+import Container from '../../components/layout/Container/Container';
+import PageHeader from '../../components/layout/PageHeader/PageHeader';
+import Card from '../../components/ui/Card/Card';
+import Button from '../../components/ui/Button/Button';
+import FormField from '../../components/ui/Form/FormField';
+import TextInput from '../../components/ui/Form/TextInput';
+import TextArea from '../../components/ui/Form/TextArea';
+import Alert from '../../components/ui/Alert/Alert';
+
 import './CreateTicketPage.css';
-import {TicketRequestDto} from "../../types";
 
 const validationSchema = Yup.object({
-    title: Yup.string().required('Title is required').max(100, 'Title must be less than 100 characters'),
-    description: Yup.string().required('Description is required')
+    title: Yup.string()
+        .required('Title is required')
+        .max(100, 'Title must be less than 100 characters'),
+    description: Yup.string()
+        .required('Description is required')
 });
 
-const CreateTicketPage = () => {
+const CreateTicketPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+
     const { loading, error } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     if (!isAuthenticated) {
@@ -45,6 +60,7 @@ const CreateTicketPage = () => {
                 await dispatch(createTicket(ticketData)).unwrap();
                 setSuccessMessage('Ticket created successfully!');
                 formik.resetForm();
+
                 setTimeout(() => {
                     navigate('/dashboard');
                 }, 2000);
@@ -59,112 +75,108 @@ const CreateTicketPage = () => {
     };
 
     return (
-        <div className="create-ticket-container">
-            <header className="create-ticket-header">
-                <h1 className="header-title">Create Support Ticket</h1>
-                <div className="header-actions">
-                    <button className="back-button" onClick={handleCancel}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
+        <Container size="md">
+            <PageHeader
+                title="Create Support Ticket"
+                actions={
+                    <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                    >
                         Back to Dashboard
-                    </button>
-                </div>
-            </header>
+                    </Button>
+                }
+            />
 
-            <div className="create-ticket-card">
+            <Card className="create-ticket-card">
                 {successMessage && (
-                    <div className="success-message">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
+                    <Alert
+                        variant="success"
+                        title="Success"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        }
+                        className="mb-4"
+                    >
                         {successMessage}
-                    </div>
+                    </Alert>
                 )}
 
                 {error && (
-                    <div className="error-message">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                    <Alert
+                        variant="danger"
+                        title="Error"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                        className="mb-4"
+                    >
                         {error}
-                    </div>
+                    </Alert>
                 )}
 
-                <form onSubmit={formik.handleSubmit} className="form">
-                    <div className="input-group">
-                        <label htmlFor="title">Ticket Title *</label>
-                        <input
+                <form onSubmit={formik.handleSubmit} className="create-ticket-form">
+                    <FormField
+                        id="title"
+                        label="Ticket Title"
+                        required
+                        error={formik.touched.title && formik.errors.title ? formik.errors.title : undefined}
+                        helperText="Brief summary of the issue"
+                    >
+                        <TextInput
                             id="title"
                             name="title"
-                            type="text"
+                            placeholder="Enter a title for your ticket"
+                            value={formik.values.title}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            value={formik.values.title}
-                            placeholder="Enter a title for your ticket"
+                            hasError={!!(formik.touched.title && formik.errors.title)}
                         />
-                        <div className="input-description">
-                            Brief summary of the issue (required)
-                        </div>
-                        {formik.touched.title && formik.errors.title ? (
-                            <div className="form-error">{formik.errors.title}</div>
-                        ) : null}
-                    </div>
+                    </FormField>
 
-                    <div className="input-group">
-                        <label htmlFor="description">Detailed Description *</label>
-                        <textarea
+                    <FormField
+                        id="description"
+                        label="Detailed Description"
+                        required
+                        error={formik.touched.description && formik.errors.description ? formik.errors.description : undefined}
+                        helperText="Include all relevant details about the issue"
+                    >
+                        <TextArea
                             id="description"
                             name="description"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.description}
                             placeholder="Describe your issue in detail"
-                        />
-                        <div className="input-description">
-                            Include all relevant details about the issue (required)
-                        </div>
-                        {formik.touched.description && formik.errors.description ? (
-                            <div className="form-error">{formik.errors.description}</div>
-                        ) : null}
-                    </div>
-
-                    <div className="input-group">
-                        <label htmlFor="assignee_id">Assignee ID (Optional)</label>
-                        <input
-                            id="assignee_id"
-                            name="assignee_id"
-                            type="text"
+                            value={formik.values.description}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            value={formik.values.assignee_id}
-                            placeholder="Leave empty to auto-assign"
+                            hasError={!!(formik.touched.description && formik.errors.description)}
                         />
-                        <div className="input-description">
-                            Optional: You can leave this field empty to let the system assign a support agent automatically
-                        </div>
-                    </div>
+                    </FormField>
 
                     <div className="form-actions">
-                        <button type="submit" disabled={loading} className="submit-button">
-                            {loading ? (
-                                <>
-                                    <span className="loading-spinner"></span>
-                                    Creating Ticket...
-                                </>
-                            ) : (
-                                <>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Create Ticket
-                                </>
-                            )}
-                        </button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleCancel}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={loading}
+                            isLoading={loading}
+                        >
+                            Create Ticket
+                        </Button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </Card>
+        </Container>
     );
 };
 

@@ -1,18 +1,24 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
+import {fetchMyAssignedTickets, fetchMyCreatedTickets} from '../../store/slices/ticketSlice';
 import {logout} from '../../store/slices/authSlice';
 import {fetchCurrentUser} from '../../store/slices/userSlice';
-import {fetchMyAssignedTickets, fetchMyCreatedTickets} from '../../store/slices/ticketSlice';
 import {AppDispatch, RootState} from '../../store';
-import TicketGrid from '../../components/common/TicketGrid/TicketGrid';
-import TicketFilter from '../../components/common/TicketFilter/TicketFilter';
 import {TicketResponseDto, TicketStatus, UserRole} from '../../types';
-import {formatTicketStatus} from '../../utils/formatters';
 import {hasAnyRole} from '../../utils/jwtUtils';
+
+import Container from '../../components/layout/Container/Container';
+import PageHeader from '../../components/layout/PageHeader/PageHeader';
+import Card from '../../components/ui/Card/Card';
+import Button from '../../components/ui/Button/Button';
+import TicketGrid from "../../components/modules/tickets/TicketGrid/TicketGrid.tsx";
+import Spinner from '../../components/ui/Spinner/Spinner';
+import Alert from '../../components/ui/Alert/Alert';
+
 import './DashboardPage.css';
 
-const DashboardPage = () => {
+const DashboardPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
@@ -22,11 +28,11 @@ const DashboardPage = () => {
     const {
         myAssignedTickets,
         myCreatedTickets,
-        loading: ticketsLoading
+        loading: ticketsLoading,
+        error
     } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-    // Use JWT to check roles instead of currentUser object
     const hasSupportRole = hasAnyRole([UserRole.SUPPORT, UserRole.ADMIN]);
 
     useEffect(() => {
@@ -39,9 +45,7 @@ const DashboardPage = () => {
         }
     }, [dispatch, isAuthenticated, navigate]);
 
-    const filterTickets = (tickets: TicketResponseDto[] | undefined): TicketResponseDto[] => {
-        if (!tickets) return [];
-
+    const filterTickets = (tickets: TicketResponseDto[] = []): TicketResponseDto[] => {
         if (statusFilter === 'ALL') {
             return tickets;
         }
@@ -65,17 +69,6 @@ const DashboardPage = () => {
         navigate('/create-ticket');
     };
 
-    const getUserInitials = () => {
-        if (!currentUser) return '';
-
-        const firstInitial = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '';
-        const lastInitial = currentUser.last_name ? currentUser.last_name.charAt(0).toUpperCase() : '';
-
-        return firstInitial + lastInitial || currentUser.username.charAt(0).toUpperCase();
-    };
-
-    const isEmptyDashboard = !filteredAssignedTickets?.length && !filteredCreatedTickets?.length;
-
     const getTicketCountsByStatus = () => {
         const allTickets = [...(myCreatedTickets || []), ...(myAssignedTickets || [])];
 
@@ -90,172 +83,205 @@ const DashboardPage = () => {
     };
 
     const ticketCounts = getTicketCountsByStatus();
+    const isEmptyDashboard = !filteredAssignedTickets.length && !filteredCreatedTickets.length;
+
+    if (userLoading || ticketsLoading) {
+        return (
+            <Container>
+                <div className="dashboard-loading">
+                    <Spinner size="lg" />
+                    <p>Loading dashboard...</p>
+                </div>
+            </Container>
+        );
+    }
 
     return (
-        <div className="dashboard-container">
-            <header className="dashboard-header">
-                <h1 className="dashboard-title">Support Dashboard</h1>
-                <div className="header-actions">
-                    <button className="button button-secondary" onClick={handleLogout}>
+        <Container>
+            <PageHeader
+                title="Support Dashboard"
+                subtitle={currentUser ? `Welcome back, ${currentUser.first_name || currentUser.username}` : ''}
+                actions={
+                    <Button
+                        variant="outline"
+                        onClick={handleLogout}
+                    >
                         Logout
-                    </button>
-                </div>
-            </header>
+                    </Button>
+                }
+            />
 
-            {userLoading || ticketsLoading ? (
-                <div className="dashboard-loading">
-                    <div className="spinner"></div>
-                </div>
-            ) : (
-                <div className="dashboard-main">
-                    {/* Sidebar with user profile */}
-                    <aside className="dashboard-sidebar">
-                        <div className="user-profile-card">
-                            <div className="user-profile-header">
-                                <div className="user-avatar">
-                                    {getUserInitials()}
-                                </div>
-                                <div>
-                                    <div className="user-name">
-                                        {currentUser?.first_name && currentUser?.last_name
-                                            ? `${currentUser.first_name} ${currentUser.last_name}`
-                                            : currentUser?.username || 'User'}
-                                    </div>
-                                    <div className="user-email">{currentUser?.email}</div>
-                                </div>
-                            </div>
+            {error && (
+                <Alert
+                    variant="danger"
+                    title="Error"
+                    className="mb-4"
+                >
+                    {error}
+                </Alert>
+            )}
 
-                            <div className="user-info-list">
-                                <div className="user-info-item">
-                                    <span className="info-label">Username</span>
-                                    <span className="info-value">{currentUser?.username}</span>
-                                </div>
-                            </div>
+            <div className="dashboard-layout">
+                <div className="dashboard-sidebar">
+
+                    {/* Filter card */}
+                    <Card className="filter-card">
+                        <h3 className="filter-title">Filter by Status</h3>
+                        <div className="filter-buttons">
+                            <Button
+                                variant={statusFilter === 'ALL' ? 'primary' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange('ALL')}
+                                className="filter-button"
+                            >
+                                All Tickets
+                            </Button>
+
+                            <Button
+                                variant={statusFilter === TicketStatus.OPENED ? 'success' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange(TicketStatus.OPENED)}
+                                className="filter-button"
+                            >
+                                Opened
+                            </Button>
+
+                            <Button
+                                variant={statusFilter === TicketStatus.IN_PROGRESS ? 'warning' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange(TicketStatus.IN_PROGRESS)}
+                                className="filter-button"
+                            >
+                                In Progress
+                            </Button>
+
+                            <Button
+                                variant={statusFilter === TicketStatus.CLOSED ? 'danger' : 'outline'}
+                                size="sm"
+                                onClick={() => handleFilterChange(TicketStatus.CLOSED)}
+                                className="filter-button"
+                            >
+                                Closed
+                            </Button>
                         </div>
+                    </Card>
 
-                        {/* Add Status Filter Component */}
-                        <TicketFilter
-                            onFilterChange={handleFilterChange}
-                            currentFilter={statusFilter}
-                        />
-
-                        <button onClick={handleCreateTicket} className="create-ticket-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                    {/* Action buttons */}
+                    <div className="dashboard-actions">
+                        <Button
+                            variant="primary"
+                            onClick={handleCreateTicket}
+                            fullWidth
+                        >
                             Create New Ticket
-                        </button>
+                        </Button>
 
                         {hasSupportRole && (
-                            <button onClick={() => navigate('/support/tickets')} className="support-ticket-button">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
+                            <Button
+                                variant="secondary"
+                                onClick={() => navigate('/support/tickets')}
+                                fullWidth
+                            >
                                 See All Tickets
-                            </button>
+                            </Button>
                         )}
-                    </aside>
+                    </div>
+                </div>
 
-                    {/* Main content */}
-                    <main className="dashboard-content">
-                        {/* Stats cards */}
-                        <div className="stats-cards">
-                            <div className="stat-card">
-                                <div className="stat-card-header">
-                                    <div className="stat-card-icon stat-icon-tickets">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="stat-card-number">{ticketCounts.total}</div>
-                                <div className="stat-card-title">Total Tickets</div>
-                            </div>
-
-                            <div className="stat-card">
-                                <div className="stat-card-header">
-                                    <div className="stat-card-icon stat-icon-open">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="stat-card-number">{ticketCounts.opened}</div>
-                                <div className="stat-card-title">Opened</div>
-                            </div>
-
-                            <div className="stat-card">
-                                <div className="stat-card-header">
-                                    <div className="stat-card-icon stat-icon-progress">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="stat-card-number">{ticketCounts.inProgress}</div>
-                                <div className="stat-card-title">In Progress</div>
-                            </div>
-
-                            <div className="stat-card">
-                                <div className="stat-card-header">
-                                    <div className="stat-card-icon stat-icon-closed">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="stat-card-number">{ticketCounts.closed}</div>
-                                <div className="stat-card-title">Closed</div>
-                            </div>
-                        </div>
-
-                        {/* The horizontal row of tickets assigned to me */}
-                        {filteredAssignedTickets.length > 0 && (
-                            <TicketGrid
-                                tickets={filteredAssignedTickets}
-                                title={`Tickets Assigned to Me ${statusFilter !== 'ALL'
-                                    ? `(${statusFilter})`
-                                    : ''}`}
-                                emptyMessage={`You don't have any ${statusFilter !== 'ALL'
-                                    ? statusFilter.toLowerCase() + ' '
-                                    : ''}tickets assigned to you`}
-                                maxItems={5}
-                            />
-                        )}
-
-                        {isEmptyDashboard ? (
-                            <div className="empty-dashboard">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="dashboard-content">
+                    {/* Stats cards */}
+                    <div className="stats-cards">
+                        <Card className="stat-card">
+                            <div className="stat-card-icon stat-icon-tickets">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                <h3>No {statusFilter !== 'ALL' ? `${formatTicketStatus(statusFilter as TicketStatus)} ` : ''}tickets found</h3>
-                                <p>
-                                    {statusFilter !== 'ALL'
-                                        ? `You don't have any ${formatTicketStatus(statusFilter as TicketStatus).toLowerCase()} tickets. Try changing the filter or create a new ticket.`
-                                        : `You don't have any tickets assigned to you or created by you. Get started by creating your first support ticket.`
-                                    }
-                                </p>
-                                <button onClick={handleCreateTicket} className="button">Create Your First Ticket</button>
                             </div>
-                        ) : (
-                            <div className="ticket-sections-container">
-                                {/* Traditional grid layout for created tickets */}
+                            <div className="stat-card-number">{ticketCounts.total}</div>
+                            <div className="stat-card-title">Total Tickets</div>
+                        </Card>
+
+                        <Card className="stat-card">
+                            <div className="stat-card-icon stat-icon-open">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                            </div>
+                            <div className="stat-card-number">{ticketCounts.opened}</div>
+                            <div className="stat-card-title">Opened</div>
+                        </Card>
+
+                        <Card className="stat-card">
+                            <div className="stat-card-icon stat-icon-progress">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div className="stat-card-number">{ticketCounts.inProgress}</div>
+                            <div className="stat-card-title">In Progress</div>
+                        </Card>
+
+                        <Card className="stat-card">
+                            <div className="stat-card-icon stat-icon-closed">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div className="stat-card-number">{ticketCounts.closed}</div>
+                            <div className="stat-card-title">Closed</div>
+                        </Card>
+                    </div>
+
+                    {isEmptyDashboard ? (
+                        <Card className="empty-dashboard">
+
+                            <h3>No {statusFilter !== 'ALL' ? `${statusFilter.toLowerCase()} ` : ''}tickets found</h3>
+                            <p>
+                                {statusFilter !== 'ALL'
+                                    ? `You don't have any ${statusFilter.toLowerCase()} tickets. Try changing the filter or create a new ticket.`
+                                    : `You don't have any tickets assigned to you or created by you. Get started by creating your first support ticket.`
+                                }
+                            </p>
+                            <Button onClick={handleCreateTicket}>Create Your First Ticket</Button>
+                        </Card>
+                    ) : (
+                        <div className="ticket-sections">
+                            {/* Assigned tickets section */}
+                            {filteredAssignedTickets.length > 0 && (
+                                <div className="ticket-section">
+                                    <h2 className="section-title">
+                                        Tickets Assigned to Me {statusFilter !== 'ALL'
+                                        ? `(${statusFilter})`
+                                        : ''}
+                                    </h2>
+                                    <TicketGrid
+                                        tickets={filteredAssignedTickets}
+                                        emptyMessage={`You don't have any ${statusFilter !== 'ALL'
+                                            ? statusFilter.toLowerCase() + ' '
+                                            : ''}tickets assigned to you`}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Created tickets section */}
+                            <div className="ticket-section">
+                                <h2 className="section-title">
+                                    Tickets Created by Me {statusFilter !== 'ALL'
+                                    ? `(${statusFilter})`
+                                    : ''}
+                                </h2>
                                 <TicketGrid
                                     tickets={filteredCreatedTickets}
-                                    title={`Tickets Created by Me ${statusFilter !== 'ALL'
-                                        ? `(${statusFilter})`
-                                        : ''}`}
                                     emptyMessage={`You haven't created any ${statusFilter !== 'ALL'
                                         ? statusFilter.toLowerCase() + ' '
                                         : ''}tickets yet`}
-                                    maxItems={12}
                                 />
                             </div>
-                        )}
-                    </main>
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
+            </div>
+        </Container>
     );
 };
 

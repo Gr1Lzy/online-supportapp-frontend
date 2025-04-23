@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchAllTickets } from '../../store/slices/supportSlice';
 import { AppDispatch, RootState } from '../../store';
-import TicketGrid from '../../components/common/TicketGrid/TicketGrid';
-import TicketFilter from '../../components/common/TicketFilter/TicketFilter';
+import TicketGrid from '../../components/modules/tickets/TicketGrid/TicketGrid';
+import TicketFilter from '../../components/modules/tickets/TicketFilter/TicketFilter';
 import { TicketResponseDto, TicketStatus, UserRole } from '../../types';
 import { formatTicketStatus } from '../../utils/formatters';
 import { hasAnyRole } from '../../utils/jwtUtils';
@@ -71,9 +71,6 @@ const SupportTicketPage = () => {
                 <h1 className="support-title">Support Ticket Management</h1>
                 <div className="header-actions">
                     <button className="back-button" onClick={handleBackToDashboard}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
                         Back to Dashboard
                     </button>
                 </div>
@@ -94,17 +91,11 @@ const SupportTicketPage = () => {
                         </div>
                     ) : error ? (
                         <div className="error-message">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
                             {error}
                         </div>
                     ) : isEmptyTickets ? (
                         <div className="empty-support">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <h3>No {statusFilter !== 'ALL' ? `${formatTicketStatus(statusFilter as TicketStatus)} ` : ''}tickets found</h3>
+                            <h3>No {statusFilter !== 'ALL' ? `${statusFilter.toLowerCase()} ` : ''}tickets found</h3>
                             <p>
                                 {statusFilter !== 'ALL'
                                     ? `No ${formatTicketStatus(statusFilter as TicketStatus).toLowerCase()} tickets are available. Try changing the filter.`

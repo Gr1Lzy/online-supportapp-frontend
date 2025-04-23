@@ -1,0 +1,45 @@
+/* Base container */
+.layout-container {
+    width: 100%;
+}
+
+/* Container sizes */
+.container-sm {
+    max-width: 640px;
+}
+
+.container-md {
+    max-width: 768px;
+}
+
+.container-lg {
+    max-width: 1024px;
+}
+
+.container-xl {
+    max-width: 1280px;
+}
+
+.container-full {
+    max-width: none;
+}
+
+/* Centered container */
+.container-centered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Container with padding */
+.container-padding {
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-padding {
+        padding-left: var(--spacing-3);
+        padding-right: var(--spacing-3);
+    }
+}

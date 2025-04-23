@@ -10,10 +10,6 @@ export interface AuthResponseDto {
     expires_in: number
 }
 
-export interface RefreshRequestDto {
-    refresh_token: string
-}
-
 export interface PasswordRequestDto {
     password: string
 }

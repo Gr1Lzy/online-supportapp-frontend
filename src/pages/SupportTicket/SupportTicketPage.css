@@ -10,13 +10,13 @@
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--color-neutral-200);
 }
 
 .support-title {
     font-size: var(--font-2xl);
     font-weight: 700;
-    color: var(--neutral-900);
+    color: var(--color-neutral-900);
 }
 
 .header-actions {
@@ -53,8 +53,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--neutral-50);
-    border-radius: var(--border-radius-lg);
+    background-color: var(--color-neutral-50);
+    border-radius: var(--radius-lg);
     padding: 40px;
     text-align: center;
     margin-top: 20px;
@@ -63,19 +63,19 @@
 .empty-support svg {
     width: 60px;
     height: 60px;
-    color: var(--neutral-400);
+    color: var(--color-neutral-400);
     margin-bottom: 20px;
 }
 
 .empty-support h3 {
     font-size: var(--font-xl);
     font-weight: 600;
-    color: var(--neutral-800);
+    color: var(--color-neutral-800);
     margin-bottom: 12px;
 }
 
 .empty-support p {
-    color: var(--neutral-600);
+    color: var(--color-neutral-600);
     margin-bottom: 24px;
     max-width: 500px;
 }
@@ -86,7 +86,7 @@
     align-items: center;
     padding: 40px;
     background-color: white;
-    border-radius: var(--border-radius-lg);
+    border-radius: var(--radius-lg);
     min-height: 300px;
 }
 
@@ -95,15 +95,15 @@
     height: 40px;
     border: 4px solid rgba(52, 152, 219, 0.2);
     border-radius: 50%;
-    border-top-color: var(--primary-color);
+    border-top-color: var(--color-primary);
     animation: spin 1s ease infinite;
 }
 
 .error-message {
     background-color: rgba(231, 76, 60, 0.1);
-    color: var(--danger);
+    color: var(--color-danger);
     padding: 16px;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--radius-md);
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -113,7 +113,7 @@
 .error-message svg {
     width: 20px;
     height: 20px;
-    color: var(--danger);
+    color: var(--color-danger);
 }
 
 .load-more-container {
@@ -125,10 +125,10 @@
 
 .load-more-button {
     padding: 12px 24px;
-    background-color: var(--primary-light);
+    background-color: var(--color-primary-light);
     color: white;
     border: none;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--radius-md);
     font-weight: 500;
     font-size: var(--font-base);
     cursor: pointer;
@@ -139,14 +139,14 @@
 }
 
 .load-more-button:hover {
-    background-color: var(--primary-color);
+    background-color: var(--color-primary);
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .load-more-button:disabled {
-    background-color: var(--neutral-300);
-    color: var(--neutral-500);
+    background-color: var(--color-neutral-300);
+    color: var(--color-neutral-500);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;

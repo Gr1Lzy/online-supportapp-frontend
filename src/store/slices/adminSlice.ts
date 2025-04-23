@@ -83,10 +83,8 @@ export const updateUser = createAsyncThunk(
         roles?: UserRole[]
     }, { rejectWithValue, dispatch }) => {
         try {
-            // Update user details
             await adminUserService.updateUser(id, userData);
 
-            // Update roles if specified
             if (roles && roles.length > 0) {
                 const roleRequests = roles.map(role =>
                     dispatch(assignRole({
@@ -97,7 +95,6 @@ export const updateUser = createAsyncThunk(
                 await Promise.all(roleRequests);
             }
 
-            // Refresh user list
             await dispatch(fetchAdminUsers({ page: 0, size: 10 }));
 
             return { success: true };
@@ -113,7 +110,6 @@ export const deleteUser = createAsyncThunk(
         try {
             await adminUserService.deleteUser(id);
 
-            // Refresh user list
             await dispatch(fetchAdminUsers({ page: 0, size: 10 }));
 
             return id;
@@ -153,7 +149,6 @@ const adminSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        // Register User
         builder.addCase(registerUser.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -166,7 +161,6 @@ const adminSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Fetch Users List
         builder.addCase(fetchAdminUsers.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -183,7 +177,6 @@ const adminSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Fetch User By ID
         builder.addCase(fetchUserById.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -197,7 +190,6 @@ const adminSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Update User
         builder.addCase(updateUser.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -210,7 +202,6 @@ const adminSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Delete User
         builder.addCase(deleteUser.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -224,7 +215,6 @@ const adminSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Assign Role
         builder.addCase(assignRole.pending, (state) => {
             state.loading = true;
             state.error = null;

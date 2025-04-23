@@ -1,5 +1,6 @@
-import {ReactNode} from 'react';
-import './ConfirmationDialog.css';
+import React, { ReactNode } from 'react';
+import Modal from '../../ui/Modal/Modal';
+import Button from '../../ui/Button/Button';
 
 interface ConfirmationDialogProps {
     isOpen: boolean;
@@ -9,44 +10,55 @@ interface ConfirmationDialogProps {
     onCancel: () => void;
     confirmButtonText?: string;
     cancelButtonText?: string;
+    confirmVariant?: 'primary' | 'danger';
+    isDestructive?: boolean;
+    isConfirming?: boolean;
 }
 
-const ConfirmationDialog = ({
-                                isOpen,
-                                title,
-                                children,
-                                onConfirm,
-                                onCancel,
-                                confirmButtonText = 'Confirm',
-                                cancelButtonText = 'Cancel'
-                            }: ConfirmationDialogProps) => {
-    if (!isOpen) return null;
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+                                                                   isOpen,
+                                                                   title,
+                                                                   children,
+                                                                   onConfirm,
+                                                                   onCancel,
+                                                                   confirmButtonText = 'Confirm',
+                                                                   cancelButtonText = 'Cancel',
+                                                                   confirmVariant = 'primary',
+                                                                   isDestructive = false,
+                                                                   isConfirming = false,
+                                                               }) => {
+    const buttonVariant = isDestructive ? 'danger' : confirmVariant;
+
+    const footer = (
+        <>
+            <Button
+                variant="outline"
+                onClick={onCancel}
+                disabled={isConfirming}
+            >
+                {cancelButtonText}
+            </Button>
+            <Button
+                variant={buttonVariant}
+                onClick={onConfirm}
+                isLoading={isConfirming}
+                disabled={isConfirming}
+            >
+                {confirmButtonText}
+            </Button>
+        </>
+    );
 
     return (
-        <div className="confirmation-overlay" onClick={onCancel}>
-            <div className="confirmation-dialog" onClick={(e) => e.stopPropagation()}>
-                <div className="confirmation-header">
-                    <h3>{title}</h3>
-                    <button className="close-button" onClick={onCancel}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-                <div className="confirmation-body">
-                    {children}
-                </div>
-                <div className="confirmation-actions">
-                    <button className="cancel-button" onClick={onCancel}>
-                        {cancelButtonText}
-                    </button>
-                    <button className="confirm-button" onClick={onConfirm}>
-                        {confirmButtonText}
-                    </button>
-                </div>
-            </div>
-        </div>
+        <Modal
+            isOpen={isOpen}
+            title={title}
+            onClose={onCancel}
+            footer={footer}
+            size="sm"
+        >
+            {children}
+        </Modal>
     );
 };
 

@@ -1,22 +1,27 @@
 import { Routes, Route } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "./store";
+import AppLayout from "./components/layout/AppLayout/AppLayout";
 import CreateTicketPage from "./pages/CreateTicket/CreateTicketPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
-import ExtendedTicketDetailPage from "./pages/TicketDetail/ExtendedTicketDetailPage";
+import TicketDetailPage from "./pages/TicketDetail/TicketDetailPage";
 import SupportTicketPage from "./pages/SupportTicket/SupportTicketPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
-import ProtectedRoute from "./components/common/ProtectedRoute";
-import AdminLoginPage from "./pages/AdminLogin/AdminLoginPage";
+import ProtectedRoute from "./components/common/ProtectedRoute/ProtectedRoute";
 import AdminPage from "./pages/AdminPage/AdminPage";
 import { UserRole } from "./types";
-import './assets/styles/global.css';
+import './styles/index.css';
 
 function App() {
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+    const isAuthPage = (path: string) => ['/login', '/admin/login', '/register'].includes(path);
+
     return (
-        <div className="app">
+        <AppLayout showHeader={isAuthenticated && !isAuthPage(window.location.pathname)}>
             <Routes>
                 <Route path="/" element={<LoginPage />} />
-                <Route path="/admin/login" element={<AdminLoginPage />} />
                 <Route path="/dashboard" element={
                     <ProtectedRoute>
                         <DashboardPage />
@@ -29,7 +34,7 @@ function App() {
                 } />
                 <Route path="/tickets/:ticketId" element={
                     <ProtectedRoute>
-                        <ExtendedTicketDetailPage />
+                        <TicketDetailPage />
                     </ProtectedRoute>
                 } />
                 <Route path="/support/tickets" element={
@@ -44,7 +49,7 @@ function App() {
                 } />
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
-        </div>
+        </AppLayout>
     );
 }
 

@@ -1,0 +1,161 @@
+/* Card base */
+.card {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Card border styles */
+.card-bordered {
+    border: 1px solid var(--color-neutral-200);
+    border-radius: var(--radius-lg);
+}
+
+/* Card shadows */
+.card-shadow {
+    box-shadow: var(--shadow-md);
+}
+
+.card-shadow-sm {
+    box-shadow: var(--shadow-sm);
+}
+
+.card-shadow-md {
+    box-shadow: var(--shadow-md);
+}
+
+.card-shadow-lg {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-shadow-xl {
+    box-shadow: var(--shadow-xl);
+}
+
+/* Card interactive styles */
+.card-interactive {
+    cursor: pointer;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card-interactive:hover,
+.card-interactive:focus {
+    transform: translateY(-2px);
+}
+
+.card-interactive:active {
+    transform: translateY(0);
+}
+
+/* Card elevation levels (additional hover effects) */
+.card-elevation:hover,
+.card-elevation:focus {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-elevation-sm:hover,
+.card-elevation-sm:focus {
+    box-shadow: var(--shadow-md);
+}
+
+.card-elevation-md:hover,
+.card-elevation-md:focus {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-elevation-lg:hover,
+.card-elevation-lg:focus {
+    box-shadow: var(--shadow-xl);
+}
+
+/* Card padding sizes */
+.card-padding-sm {
+    padding: var(--spacing-3);
+}
+
+.card-padding-md {
+    padding: var(--spacing-4);
+}
+
+.card-padding-lg {
+    padding: var(--spacing-6);
+}
+
+/* Card sections */
+.card-header {
+    padding: var(--spacing-4);
+    border-bottom: 1px solid var(--color-neutral-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-body {
+    flex: 1;
+}
+
+.card-footer {
+    padding: var(--spacing-4);
+    border-top: 1px solid var(--color-neutral-200);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+/* Prevent double padding when sections are used */
+.card-padding-sm .card-header {
+    padding: 0 0 var(--spacing-3) 0;
+    margin-bottom: var(--spacing-3);
+}
+
+.card-padding-sm .card-footer {
+    padding: var(--spacing-3) 0 0 0;
+    margin-top: var(--spacing-3);
+}
+
+.card-padding-md .card-header {
+    padding: 0 0 var(--spacing-4) 0;
+    margin-bottom: var(--spacing-4);
+}
+
+.card-padding-md .card-footer {
+    padding: var(--spacing-4) 0 0 0;
+    margin-top: var(--spacing-4);
+}
+
+.card-padding-lg .card-header {
+    padding: 0 0 var(--spacing-5) 0;
+    margin-bottom: var(--spacing-5);
+}
+
+.card-padding-lg .card-footer {
+    padding: var(--spacing-5) 0 0 0;
+    margin-top: var(--spacing-5);
+}
+
+/* Focus styles for accessibility */
+.card-interactive:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-padding-lg {
+        padding: var(--spacing-4);
+    }
+
+    .card-padding-lg .card-header {
+        padding: 0 0 var(--spacing-4) 0;
+        margin-bottom: var(--spacing-4);
+    }
+
+    .card-padding-lg .card-footer {
+        padding: var(--spacing-4) 0 0 0;
+        margin-top: var(--spacing-4);
+    }
+}

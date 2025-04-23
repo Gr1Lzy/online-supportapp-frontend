@@ -1,4 +1,4 @@
-import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
     CommentCreateRequestDto,
     PageDto,
@@ -8,10 +8,11 @@ import {
     TicketStatus,
     UserIdRequestDto
 } from '../../types';
-import {ticketService} from "../../api/services/ticket/ticketService";
-import {supportTicketService} from "../../api/services/ticket/supportTicketService";
-import {commentService} from "../../api/services/comment/commentService";
-import {handleApiError, setPending, setRejected} from '../../utils/reduxHelpers';
+import { ticketService } from "../../api/services/ticket/ticketService";
+import { supportTicketService } from "../../api/services/ticket/supportTicketService";
+import { commentService } from "../../api/services/comment/commentService";
+import { handleApiError, setPending, setRejected } from '../../utils/reduxHelpers';
+import { RootState } from '../../store';
 
 interface TicketState {
     tickets: TicketResponseDto[];
@@ -41,16 +42,26 @@ const initialState: TicketState = {
     currentFilter: 'ALL',
 };
 
-const createTicketThunk = <T, R>(
+interface ThunkAPI {
+    dispatch: any;
+    rejectWithValue: any;
+    getState: () => RootState;
+}
+
+const createTicketThunk = <TArg, TResult>(
     typePrefix: string,
-    payloadCreator: (arg: T, {rejectWithValue, dispatch}: any) => Promise<R>,
+    payloadCreator: (arg: TArg, thunkAPI: ThunkAPI) => Promise<TResult>,
     defaultErrorMessage: string
 ) => {
-    return createAsyncThunk(
+    return createAsyncThunk<TResult, TArg>(
         typePrefix,
-        async (arg: T, {rejectWithValue, dispatch}) => {
+        async (arg, { rejectWithValue, dispatch, getState }) => {
             try {
-                return await payloadCreator(arg, {rejectWithValue, dispatch});
+                return await payloadCreator(arg, {
+                    rejectWithValue,
+                    dispatch,
+                    getState: getState as unknown as () => RootState
+                });
             } catch (error: any) {
                 return rejectWithValue(handleApiError(error, defaultErrorMessage));
             }
@@ -63,7 +74,7 @@ export const fetchTickets = createTicketThunk<
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchAll',
-    async ({page = 0, size = 10}) => await ticketService.getAll(page, size),
+    async ({ page = 0, size = 10 }) => await ticketService.getAll(page, size),
     'Failed to fetch tickets'
 );
 
@@ -72,7 +83,7 @@ export const fetchMyCreatedTickets = createTicketThunk<
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchMyCreated',
-    async ({page = 0, size = 10}) => await ticketService.getMyCreatedTickets(page, size),
+    async ({ page = 0, size = 10 }) => await ticketService.getMyCreatedTickets(page, size),
     'Failed to fetch your created tickets'
 );
 
@@ -81,7 +92,7 @@ export const fetchMyAssignedTickets = createTicketThunk<
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchMyAssigned',
-    async ({page = 0, size = 10}) => await ticketService.getMyAssignedTickets(page, size),
+    async ({ page = 0, size = 10 }) => await ticketService.getMyAssignedTickets(page, size),
     'Failed to fetch tickets assigned to you'
 );
 
@@ -91,7 +102,7 @@ export const fetchTicketById = createTicketThunk<
 >(
     'tickets/fetchById',
     async (id) => await ticketService.getByTicketId(id),
-    'Failed to fetch ticket'
+    'Failed to fetch ticket details'
 );
 
 export const createTicket = createTicketThunk<
@@ -108,12 +119,12 @@ export const assignTicketToMe = createTicketThunk<
     string
 >(
     'tickets/assignToMe',
-    async (ticketId, {dispatch}) => {
+    async (ticketId, { dispatch }) => {
         await ticketService.assignTicketOnCurrentUser(ticketId);
         dispatch(fetchTicketById(ticketId));
         return ticketId;
     },
-    'Failed to assign ticket'
+    'Failed to assign ticket to yourself'
 );
 
 export const assignTicketToUser = createTicketThunk<
@@ -121,10 +132,10 @@ export const assignTicketToUser = createTicketThunk<
     { ticketId: string; userId: UserIdRequestDto }
 >(
     'tickets/assignToUser',
-    async ({ticketId, userId}, {dispatch}) => {
+    async ({ ticketId, userId }, { dispatch }) => {
         await supportTicketService.assignOnUser(ticketId, userId);
         dispatch(fetchTicketById(ticketId));
-        return {ticketId, userId};
+        return { ticketId, userId };
     },
     'Failed to assign ticket to user'
 );
@@ -134,7 +145,7 @@ export const unassignTicket = createTicketThunk<
     string
 >(
     'tickets/unassign',
-    async (ticketId, {dispatch}) => {
+    async (ticketId, { dispatch }) => {
         await supportTicketService.unassignUser(ticketId);
         dispatch(fetchTicketById(ticketId));
         return ticketId;
@@ -147,10 +158,10 @@ export const updateTicketStatus = createTicketThunk<
     { ticketId: string; status: StatusRequestDto }
 >(
     'tickets/updateStatus',
-    async ({ticketId, status}, {dispatch}) => {
+    async ({ ticketId, status }, { dispatch }) => {
         await supportTicketService.updateStatus(ticketId, status);
         dispatch(fetchTicketById(ticketId));
-        return {ticketId, status};
+        return { ticketId, status };
     },
     'Failed to update ticket status'
 );
@@ -160,7 +171,7 @@ export const addComment = createTicketThunk<
     void
 >(
     'tickets/addComment',
-    async ({ticketId, commentData}, {dispatch}) => {
+    async ({ ticketId, commentData }, { dispatch }) => {
         await commentService.addComment(ticketId, commentData);
         dispatch(fetchTicketById(ticketId));
     },
@@ -172,9 +183,9 @@ export const updateComment = createTicketThunk<
     void
 >(
     'tickets/updateComment',
-    async ({commentId, commentData}, {dispatch, getState}) => {
+    async ({ commentId, commentData }, { dispatch, getState }) => {
         await commentService.updateComment(commentId, commentData);
-        const state = getState() as any;
+        const state = getState();
         const ticketId = state.tickets.currentTicket?.id;
         if (ticketId) {
             dispatch(fetchTicketById(ticketId));
@@ -188,7 +199,7 @@ export const deleteComment = createTicketThunk<
     void
 >(
     'tickets/deleteComment',
-    async ({commentId, ticketId}, {dispatch}) => {
+    async ({ commentId, ticketId }, { dispatch }) => {
         await commentService.deleteComment(commentId);
         dispatch(fetchTicketById(ticketId));
     },
@@ -202,20 +213,23 @@ const ticketSlice = createSlice({
         clearCurrentTicket: (state) => {
             state.currentTicket = null;
         },
+
         clearTickets: (state) => {
             state.tickets = [];
             state.myCreatedTickets = [];
             state.myAssignedTickets = [];
             state.currentTicket = null;
         },
+
         updateAssignmentStatus: (state, action: PayloadAction<{
             ticketId: string,
             assignedToCurrentUser: boolean
         }>) => {
             if (state.currentTicket && state.currentTicket.id === action.payload.ticketId) {
-                console.log(`Updating assignment status to ${action.payload.assignedToCurrentUser}`);
+                console.log(`Assignment status updated to: ${action.payload.assignedToCurrentUser}`);
             }
         },
+
         setStatusFilter: (state, action: PayloadAction<TicketStatus | 'ALL'>) => {
             state.currentFilter = action.payload;
         }
@@ -276,5 +290,11 @@ const ticketSlice = createSlice({
     },
 });
 
-export const {clearCurrentTicket, clearTickets, updateAssignmentStatus, setStatusFilter} = ticketSlice.actions;
+export const {
+    clearCurrentTicket,
+    clearTickets,
+    updateAssignmentStatus,
+    setStatusFilter
+} = ticketSlice.actions;
+
 export default ticketSlice.reducer;

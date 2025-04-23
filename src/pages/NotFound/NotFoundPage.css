@@ -1,66 +1,83 @@
+/* Not found container */
 .not-found-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 80vh;
     text-align: center;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0 20px;
+    padding: var(--spacing-6) var(--spacing-4);
 }
 
+/* Not found image */
 .not-found-image {
-    width: 250px;
-    margin-bottom: 2rem;
-    opacity: 0.8;
+    width: 150px;
+    height: 150px;
+    margin-bottom: var(--spacing-6);
+    color: var(--color-neutral-400);
 }
 
+/* Title */
 .not-found-title {
     font-size: 8rem;
     font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+    color: var(--color-primary);
+    margin: 0 0 var(--spacing-3);
     line-height: 1;
 }
 
+/* Subtitle */
 .not-found-subtitle {
     font-size: 2rem;
     font-weight: 600;
-    color: var(--neutral-800);
-    margin-bottom: 1.5rem;
+    color: var(--color-neutral-800);
+    margin: 0 0 var(--spacing-4);
 }
 
+/* Message */
 .not-found-message {
-    font-size: 1.125rem;
-    color: var(--neutral-600);
-    margin-bottom: 2rem;
-    max-width: 400px;
+    font-size: var(--font-md);
+    color: var(--color-neutral-600);
+    margin: 0 0 var(--spacing-6);
+    max-width: 500px;
 }
 
-.home-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius-md);
-    font-weight: 500;
-    font-size: 1rem;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .not-found-title {
+        font-size: 6rem;
+    }
+
+    .not-found-subtitle {
+        font-size: 1.5rem;
+    }
+
+    .not-found-image {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .not-found-title {
+        font-size: 4rem;
+    }
+
+    .not-found-subtitle {
+        font-size: 1.25rem;
+    }
+
+    .not-found-image {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* Home link */
+.home-link {
     text-decoration: none;
-    transition: all 0.2s ease;
 }
 
-.home-button:hover {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.home-link:hover {
     text-decoration: none;
-}
-
-.home-button svg {
-    width: 20px;
-    height: 20px;
 }

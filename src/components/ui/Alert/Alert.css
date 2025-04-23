@@ -1,0 +1,142 @@
+/* Base alert styles */
+.alert {
+    position: relative;
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-4);
+    animation: alertFadeIn 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+/* Alert leaving animation */
+.alert-leaving {
+    animation: alertFadeOut 0.3s ease forwards;
+}
+
+/* Alert variants */
+.alert-info {
+    background-color: rgba(52, 152, 219, 0.1);
+    border-left-color: var(--color-info);
+    color: var(--color-primary-dark);
+}
+
+.alert-success {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-left-color: var(--color-success);
+    color: var(--color-secondary-dark);
+}
+
+.alert-warning {
+    background-color: rgba(243, 156, 18, 0.1);
+    border-left-color: var(--color-warning);
+    color: #d35400;
+}
+
+.alert-danger {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left-color: var(--color-danger);
+    color: #c0392b;
+}
+
+/* Alert header */
+.alert-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-2);
+}
+
+.alert-icon {
+    display: flex;
+    align-items: center;
+    margin-right: var(--spacing-2);
+    color: inherit;
+}
+
+.alert-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.alert-title {
+    font-weight: 600;
+    font-size: var(--font-md);
+}
+
+/* Alert content */
+.alert-content {
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+/* Alert with both title and content */
+.alert-header + .alert-content {
+    padding-left: 28px; /* Align with title when icon is present */
+}
+
+/* Dismiss button */
+.alert-dismiss {
+    position: absolute;
+    top: var(--spacing-3);
+    right: var(--spacing-3);
+    background: none;
+    border: none;
+    color: currentColor;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: var(--spacing-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.alert-dismiss:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.alert-dismiss:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+    opacity: 1;
+}
+
+/* Animation keyframes */
+@keyframes alertFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes alertFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .alert {
+        padding: var(--spacing-3);
+    }
+
+    .alert-dismiss {
+        top: var(--spacing-2);
+        right: var(--spacing-2);
+    }
+
+    .alert-header + .alert-content {
+        padding-left: 0;
+    }
+}

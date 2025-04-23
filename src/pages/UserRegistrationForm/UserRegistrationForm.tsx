@@ -1,26 +1,50 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { registerUser } from '../../store/slices/adminSlice';
 import { AppDispatch, RootState } from '../../store';
 import { UserCreateRequestDto } from '../../types';
+
+import Card from '../../components/ui/Card/Card';
+import Button from '../../components/ui/Button/Button';
+import FormField from '../../components/ui/Form/FormField';
+import TextInput from '../../components/ui/Form/TextInput';
+import Alert from '../../components/ui/Alert/Alert';
+
 import './UserRegistrationForm.css';
 
-const validationSchema = Yup.object({
-    username: Yup.string().required('Username is required'),
-    email: Yup.string().email('Invalid email address').required('Email is required'),
-    password: Yup.string()
-        .min(8, 'Password must be at least 8 characters')
-        .required('Password is required'),
-    first_name: Yup.string().min(2, 'First name must be at least 2 characters'),
-    last_name: Yup.string().min(2, 'Last name must be at least 2 characters'),
-});
+interface UserRegistrationFormProps {
+    onSuccess?: () => void;
+}
 
-const UserRegistrationForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+const UserRegistrationForm: React.FC<UserRegistrationFormProps> = ({ onSuccess }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { loading, error } = useSelector((state: RootState) => state.admin);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => setSuccessMessage(null);
+    }, [error]);
+
+    const validationSchema = Yup.object({
+        username: Yup.string()
+            .required('Username is required')
+            .min(3, 'Username must be at least 3 characters')
+            .max(50, 'Username must be less than 50 characters')
+            .matches(/^[a-zA-Z0-9_.-]+$/, 'Username can only contain letters, numbers, and _.-'),
+        email: Yup.string()
+            .email('Invalid email address')
+            .required('Email is required')
+            .max(100, 'Email must be less than 100 characters'),
+        password: Yup.string()
+            .min(8, 'Password must be at least 8 characters')
+            .required('Password is required'),
+        first_name: Yup.string()
+            .max(50, 'First name must be less than 50 characters'),
+        last_name: Yup.string()
+            .max(50, 'Last name must be less than 50 characters'),
+    });
 
     const formik = useFormik<UserCreateRequestDto>({
         initialValues: {
@@ -31,143 +55,136 @@ const UserRegistrationForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             last_name: '',
         },
         validationSchema,
-        onSubmit: async (values, { resetForm }) => {
+        onSubmit: async (values, { resetForm, setSubmitting }) => {
             try {
                 setSuccessMessage(null);
                 await dispatch(registerUser(values)).unwrap();
                 setSuccessMessage('User registered successfully');
                 resetForm();
+
                 if (onSuccess) {
                     onSuccess();
                 }
             } catch (err) {
-                // Error handled in the slice
                 console.error('Registration failed:', err);
+            } finally {
+                setSubmitting(false);
             }
         },
     });
 
+    const { dirty, isValid, handleSubmit, getFieldProps, touched, errors } = formik;
+
     return (
-        <div className="user-registration-form-container">
-            <h3 className="form-title">Register New User</h3>
+        <Card className="registration-form-card">
+            <h2 className="registration-form-title">Register New User</h2>
 
             {successMessage && (
-                <div className="success-message">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                <Alert
+                    variant="success"
+                    title="Success"
+                    icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                    }
+                    className="mb-4"
+                    dismissible
+                    onDismiss={() => setSuccessMessage(null)}
+                >
                     {successMessage}
-                </div>
+                </Alert>
             )}
 
-            {error && (
-                <div className="error-message">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {error}
-                </div>
-            )}
 
-            <form onSubmit={formik.handleSubmit} className="registration-form">
-                <div className="form-grid">
-                    <div className="form-field">
-                        <label htmlFor="username">Username *</label>
-                        <input
+            <form onSubmit={handleSubmit} className="registration-form">
+                <div className="form-grid-2-col">
+                    <FormField
+                        id="username"
+                        label="Username"
+                        required
+                        error={touched.username && errors.username ? errors.username : undefined}
+                    >
+                        <TextInput
                             id="username"
-                            name="username"
-                            type="text"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.username}
                             placeholder="Enter username"
+                            hasError={!!(touched.username && errors.username)}
+                            {...getFieldProps('username')}
                         />
-                        {formik.touched.username && formik.errors.username ? (
-                            <div className="error">{formik.errors.username}</div>
-                        ) : null}
-                    </div>
+                    </FormField>
 
-                    <div className="form-field">
-                        <label htmlFor="email">Email *</label>
-                        <input
+                    <FormField
+                        id="email"
+                        label="Email"
+                        required
+                        error={touched.email && errors.email ? errors.email : undefined}
+                    >
+                        <TextInput
                             id="email"
-                            name="email"
                             type="email"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.email}
                             placeholder="Enter email address"
+                            hasError={!!(touched.email && errors.email)}
+                            {...getFieldProps('email')}
                         />
-                        {formik.touched.email && formik.errors.email ? (
-                            <div className="error">{formik.errors.email}</div>
-                        ) : null}
-                    </div>
+                    </FormField>
+                </div>
 
-                    <div className="form-field">
-                        <label htmlFor="password">Password *</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.password}
-                            placeholder="Enter password (min. 8 characters)"
-                        />
-                        {formik.touched.password && formik.errors.password ? (
-                            <div className="error">{formik.errors.password}</div>
-                        ) : null}
-                    </div>
+                <FormField
+                    id="password"
+                    label="Password"
+                    required
+                    error={touched.password && errors.password ? errors.password : undefined}
+                    helperText="Password must be at least 8 characters with 1 uppercase letter, 1 lowercase letter, and 1 number"
+                >
+                    <TextInput
+                        id="password"
+                        type="password"
+                        placeholder="Enter password"
+                        hasError={!!(touched.password && errors.password)}
+                        {...getFieldProps('password')}
+                    />
+                </FormField>
 
-                    <div className="form-field">
-                        <label htmlFor="first_name">First Name</label>
-                        <input
+                <div className="form-grid-2-col">
+                    <FormField
+                        id="first_name"
+                        label="First Name"
+                        error={touched.first_name && errors.first_name ? errors.first_name : undefined}
+                    >
+                        <TextInput
                             id="first_name"
-                            name="first_name"
-                            type="text"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.first_name}
                             placeholder="Enter first name"
+                            hasError={!!(touched.first_name && errors.first_name)}
+                            {...getFieldProps('first_name')}
                         />
-                        {formik.touched.first_name && formik.errors.first_name ? (
-                            <div className="error">{formik.errors.first_name}</div>
-                        ) : null}
-                    </div>
+                    </FormField>
 
-                    <div className="form-field">
-                        <label htmlFor="last_name">Last Name</label>
-                        <input
+                    <FormField
+                        id="last_name"
+                        label="Last Name"
+                        error={touched.last_name && errors.last_name ? errors.last_name : undefined}
+                    >
+                        <TextInput
                             id="last_name"
-                            name="last_name"
-                            type="text"
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            value={formik.values.last_name}
                             placeholder="Enter last name"
+                            hasError={!!(touched.last_name && errors.last_name)}
+                            {...getFieldProps('last_name')}
                         />
-                        {formik.touched.last_name && formik.errors.last_name ? (
-                            <div className="error">{formik.errors.last_name}</div>
-                        ) : null}
-                    </div>
+                    </FormField>
                 </div>
 
                 <div className="form-actions">
-                    <button
+                    <Button
                         type="submit"
-                        className="submit-button"
-                        disabled={loading || !formik.isValid}
+                        variant="primary"
+                        disabled={loading || !(dirty && isValid)}
+                        isLoading={loading}
                     >
-                        {loading ? (
-                            <>
-                                <span className="loading-spinner"></span>
-                                Registering...
-                            </>
-                        ) : 'Register User'}
-                    </button>
+                        Register User
+                    </Button>
                 </div>
             </form>
-        </div>
+        </Card>
     );
 };
 

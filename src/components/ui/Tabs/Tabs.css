@@ -1,0 +1,81 @@
+/* Tabs container */
+.tabs {
+    margin-bottom: var(--spacing-4);
+}
+
+/* Tabs navigation */
+.tabs-nav {
+    border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.tabs-list {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+}
+
+.tabs-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+/* Individual tab */
+.tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-4);
+    border: none;
+    background: none;
+    font-weight: 500;
+    color: var(--color-neutral-600);
+    position: relative;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-fast);
+}
+
+.tab:hover {
+    color: var(--color-primary);
+}
+
+.tab-active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+}
+
+.tab-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tab-disabled:hover {
+    color: var(--color-neutral-600);
+}
+
+.tab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tab panel */
+.tab-panel {
+    margin-top: var(--spacing-4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tab {
+        padding: var(--spacing-2) var(--spacing-3);
+    }
+}

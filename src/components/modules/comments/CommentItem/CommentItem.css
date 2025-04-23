@@ -1,0 +1,136 @@
+/* Base comment item */
+.comment-item {
+    background-color: var(--color-neutral-50);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    position: relative;
+}
+
+.comment-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Own comment styling */
+.comment-item-own {
+    background-color: rgba(52, 152, 219, 0.05);
+    border-left: 3px solid var(--color-primary-light);
+}
+
+/* Comment header */
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-3);
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.comment-author-name {
+    font-weight: 500;
+    color: var(--color-neutral-800);
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.comment-date {
+    font-size: var(--font-xs);
+    color: var(--color-neutral-500);
+}
+
+/* Comment actions dropdown */
+.comment-actions {
+    position: relative;
+}
+
+.comment-actions-toggle {
+    background: none;
+    border: none;
+    color: var(--color-neutral-500);
+    padding: var(--spacing-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.comment-actions-toggle:hover {
+    background-color: var(--color-neutral-200);
+    color: var(--color-neutral-700);
+}
+
+.comment-actions-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--spacing-1);
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+    overflow: hidden;
+    min-width: 120px;
+    animation: fadeIn 0.2s ease;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--color-neutral-700);
+    font-size: var(--font-sm);
+    width: 100%;
+    text-align: left;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+.dropdown-item:hover {
+    background-color: var(--color-neutral-100);
+}
+
+.dropdown-item-danger {
+    color: var(--color-danger);
+}
+
+.dropdown-item-danger:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Comment body */
+.comment-body {
+    font-size: var(--font-sm);
+    color: var(--color-neutral-700);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Comment edit form */
+.comment-edit {
+    margin-top: var(--spacing-2);
+}
+
+.comment-edit-textarea {
+    margin-bottom: var(--spacing-3);
+}
+
+.comment-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-2);
+}
