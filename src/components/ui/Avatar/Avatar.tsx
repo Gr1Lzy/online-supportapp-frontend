@@ -5,7 +5,6 @@ export interface AvatarProps {
     name?: string;
     src?: string;
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
     shape?: 'circle' | 'square';
     bgColor?: string;
     className?: string;
@@ -34,7 +33,9 @@ export const Avatar: React.FC<AvatarProps> = ({
         const nameParts = name.split(' ').filter(Boolean);
 
         if (nameParts.length === 1) {
-            return nameParts[0].charAt(0).toUpperCase();
+            return name.length > 1
+                ? name.substring(0, 2).toUpperCase()
+                : name.charAt(0).toUpperCase();
         }
 
         return `${nameParts[0].charAt(0)}${nameParts[nameParts.length - 1].charAt(0)}`.toUpperCase();
@@ -80,8 +81,8 @@ export const Avatar: React.FC<AvatarProps> = ({
                 />
             ) : (
                 <span className="avatar-initials">
-          {initials}
-        </span>
+                    {initials}
+                </span>
             )}
         </div>
     );

@@ -1,3 +1,6 @@
+// Update to the TicketItem component to consistently display avatars
+// This should be applied to src/components/modules/tickets/TicketItem/TicketItem.tsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../../ui/Card/Card';
@@ -28,25 +31,34 @@ const TicketItem: React.FC<TicketItemProps> = ({
         }
     };
 
+    const truncateText = (text: string, maxLength: number): string => {
+        if (text.length <= maxLength) return text;
+        return `${text.substring(0, maxLength)}...`;
+    };
+
+    const getDisplayName = (user: any) => {
+        if (!user) return 'Unknown';
+        return user.first_name && user.last_name
+            ? `${user.first_name} ${user.last_name}`
+            : user.username;
+    };
+
     return (
         <Card
             className={`ticket-item ${className}`}
             interactive={true}
             onClick={handleClick}
-            data-status={ticket.status.toLowerCase()}
         >
-            <div className="ticket-item-content">
-                <div className="ticket-item-status">
-                    <StatusBadge status={ticket.status} />
-                </div>
+            <div className="ticket-item-status">
+                <StatusBadge status={ticket.status} />
+            </div>
 
-                <h3 className="ticket-item-title">
-                    {ticket.title}
-                </h3>
+            <h3 className="ticket-item-title">
+                {truncateText(ticket.title, 50)}
+            </h3>
 
-                <div className="ticket-item-description">
-                    {ticket.description}
-                </div>
+            <div className="ticket-item-description">
+                {truncateText(ticket.description, 100)}
             </div>
 
             <div className="ticket-item-footer">
@@ -58,14 +70,13 @@ const TicketItem: React.FC<TicketItemProps> = ({
 
                 {ticket.assignee && (
                     <div className="ticket-item-assignee">
-                        <span className="ticket-item-assignee-label">Assigned to:</span>
                         <div className="ticket-item-assignee-info">
                             <Avatar
-                                name={ticket.assignee.username}
+                                name={getDisplayName(ticket.assignee)}
                                 size="xs"
                             />
                             <span className="ticket-item-assignee-name">
-                                {ticket.assignee.username}
+                                {getDisplayName(ticket.assignee)}
                             </span>
                         </div>
                     </div>

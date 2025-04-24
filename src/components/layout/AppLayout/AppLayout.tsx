@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store';
 import { hasAnyRole } from '../../../utils/jwtUtils';
-import { UserRole } from '../../../types';
+import {UserResponseDto, UserRole} from '../../../types';
 import Avatar from '../../ui/Avatar/Avatar';
 import { fetchCurrentUser } from '../../../store/slices/userSlice';
 import './AppLayout.css';
@@ -29,6 +29,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             dispatch(fetchCurrentUser());
         }
     }, [isAuthenticated, currentUser, loading, dispatch]);
+
+    const getDisplayName = (user: UserResponseDto | null | undefined) => {
+        if (!user) return '';
+
+        if (user.first_name && user.last_name) {
+            return `${user.first_name} ${user.last_name}`;
+        }
+
+        return user.username;
+    };
 
     return (
         <div className="app-layout">
@@ -78,11 +88,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                                 <div className="app-user-menu">
                                     <button className="app-user-button">
                                         <Avatar
-                                            name={currentUser?.username || ''}
+                                            name={getDisplayName(currentUser)}
                                             size="sm"
                                         />
                                         <span className="app-user-name">
-                                            {currentUser?.username || 'unknown'}
+                                            {getDisplayName(currentUser)}
                                         </span>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -91,14 +101,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                                     <div className="app-user-dropdown">
                                         <div className="app-user-dropdown-header">
                                             <Avatar
-                                                name={currentUser?.username || ''}
+                                                name={getDisplayName(currentUser)}
                                                 size="md"
                                             />
                                             <div className="app-user-dropdown-info">
                                                 <div className="app-user-dropdown-name">
-                                                    {currentUser?.first_name && currentUser?.last_name
-                                                        ? `${currentUser.first_name} ${currentUser.last_name}`
-                                                        : currentUser?.username}
+                                                    {getDisplayName(currentUser)}
                                                 </div>
                                                 <div className="app-user-dropdown-email">
                                                     {currentUser?.email || ''}
