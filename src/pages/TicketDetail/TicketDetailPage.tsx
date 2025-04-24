@@ -10,7 +10,8 @@ import {
 import {
     assignTicketToUser,
     updateTicketStatus,
-    unassignTicket
+    unassignTicket,
+    fetchUsers
 } from '../../store/slices/supportSlice';
 import { AppDispatch, RootState } from '../../store';
 import { TicketStatus, UserIdRequestDto } from '../../types';
@@ -47,7 +48,7 @@ const TicketDetailPage: React.FC = () => {
     const { currentTicket, loading, error } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const { currentUser } = useSelector((state: RootState) => state.user);
-    const { users, loading: supportLoading } = useSelector((state: RootState) => state.support);
+    const { users, loading: supportLoading, loadingUsers } = useSelector((state: RootState) => state.support);
 
     const hasSupportRole = hasAnyRole([UserRole.SUPPORT, UserRole.ADMIN]);
 
@@ -72,6 +73,12 @@ const TicketDetailPage: React.FC = () => {
             setIsAssignedToMe(assigned);
         }
     }, [currentTicket, currentUser]);
+
+    useEffect(() => {
+        if (showUserSelectionModal && hasSupportRole) {
+            dispatch(fetchUsers());
+        }
+    }, [dispatch, showUserSelectionModal, hasSupportRole]);
 
     const handleBackToDashboard = () => {
         navigate('/dashboard');
@@ -419,25 +426,6 @@ const TicketDetailPage: React.FC = () => {
                                         )}
                                     </div>
                                 </div>
-
-                                {hasSupportRole && (
-                                    <div className="ticket-assignee-actions">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowUserSelectionModal(true)}
-                                        >
-                                            Change
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleUnassignTicket}
-                                        >
-                                            Unassign
-                                        </Button>
-                                    </div>
-                                )}
                             </div>
                         ) : (
                             <div className="ticket-unassigned">
@@ -500,14 +488,21 @@ const TicketDetailPage: React.FC = () => {
                     size="md"
                 >
                     <div className="user-selection-modal">
-                        {supportLoading ? (
+                        {loadingUsers ? (
                             <div className="user-selection-loading">
                                 <Spinner size="md" />
                                 <p>Loading users...</p>
                             </div>
                         ) : users.length === 0 ? (
                             <div className="user-selection-empty">
-                                <p>No users available</p>
+                                <p>No users available. Please refresh or try again.</p>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => dispatch(fetchUsers())}
+                                    className="mt-4"
+                                >
+                                    Refresh Users
+                                </Button>
                             </div>
                         ) : (
                             <div className="user-selection-list">

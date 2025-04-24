@@ -45,7 +45,8 @@ export const fetchUsers = createAsyncThunk(
     'support/fetchUsers',
     async (_, { rejectWithValue }) => {
         try {
-            return await userService.getAllUsers(0, 100);
+            const response = await userService.getAllUsers(0, 100);
+            return response;
         } catch (error: any) {
             return rejectWithValue(handleApiError(error, 'Failed to fetch users'));
         }

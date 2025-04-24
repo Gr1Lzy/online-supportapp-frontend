@@ -9,6 +9,7 @@ import { TicketResponseDto, TicketStatus, UserRole } from '../../types';
 import { formatTicketStatus } from '../../utils/formatters';
 import { hasAnyRole } from '../../utils/jwtUtils';
 import './SupportTicketPage.css';
+import Button from "../../components/ui/Button/Button.tsx";
 
 const SupportTicketPage = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -70,9 +71,12 @@ const SupportTicketPage = () => {
             <header className="support-header">
                 <h1 className="support-title">Support Ticket Management</h1>
                 <div className="header-actions">
-                    <button className="back-button" onClick={handleBackToDashboard}>
+                    <Button
+                        variant="outline"
+                        onClick={handleBackToDashboard}
+                    >
                         Back to Dashboard
-                    </button>
+                    </Button>
                 </div>
             </header>
 
