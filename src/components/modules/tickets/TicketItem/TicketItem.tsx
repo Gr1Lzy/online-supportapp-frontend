@@ -1,3 +1,6 @@
+// Update to the TicketItem component to consistently display avatars
+// This should be applied to src/components/modules/tickets/TicketItem/TicketItem.tsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../../ui/Card/Card';
