@@ -5,7 +5,8 @@ import {
     fetchTicketById,
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    assignTicketToMe // Import the correct action
 } from '../../store/slices/ticketSlice';
 import {
     assignTicketToUser,
@@ -44,6 +45,7 @@ const TicketDetailPage: React.FC = () => {
     const [operationError, setOperationError] = useState<string | null>(null);
     const [selectedStatus, setSelectedStatus] = useState<TicketStatus | null>(null);
     const [isAssignedToMe, setIsAssignedToMe] = useState(false);
+    const [assigningToMe, setAssigningToMe] = useState(false);
 
     const { currentTicket, loading, error } = useSelector((state: RootState) => state.tickets);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -95,19 +97,25 @@ const TicketDetailPage: React.FC = () => {
     };
 
     const executeAssignToMe = async () => {
-        if (!currentUser || !ticketId) return;
+        if (!ticketId) return;
 
         try {
             setOperationError(null);
-            const userId: UserIdRequestDto = { user_id: currentUser.id };
-            await dispatch(assignTicketToUser({ ticketId, userId })).unwrap();
+            setAssigningToMe(true);
+
+            // Use the correct action from ticketSlice
+            await dispatch(assignTicketToMe(ticketId)).unwrap();
+
+            // Refresh ticket data after assignment
             await dispatch(fetchTicketById(ticketId)).unwrap();
             setShowAssignToMeConfirmation(false);
         } catch (error: any) {
-            console.error('Failed to assign ticket:', error);
+            console.error('Failed to assign ticket to me:', error);
             setOperationError(
-                error?.message || 'Failed to assign ticket. Please try again.'
+                error?.message || 'Failed to assign ticket to yourself. Please try again.'
             );
+        } finally {
+            setAssigningToMe(false);
         }
     };
 
@@ -206,6 +214,20 @@ const TicketDetailPage: React.FC = () => {
     };
 
     const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
+
+    // Calculate if ticket is archived (closed more than 2 weeks ago)
+    const isTicketArchived = () => {
+        if (!currentTicket || currentTicket.status !== TicketStatus.CLOSED) {
+            return false;
+        }
+
+        const closedDate = new Date(currentTicket.updated_at);
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        return closedDate < twoWeeksAgo;
+    };
+
     const getDisplayName = (user: any) => {
         if (!user) return 'Unknown';
         return user.first_name && user.last_name
@@ -244,6 +266,17 @@ const TicketDetailPage: React.FC = () => {
         );
     }
 
+    // Show archived notice if applicable
+    const archivedNotice = isTicketArchived() && (
+        <Alert
+            variant="warning"
+            title="Archived Ticket"
+            className="mb-4"
+        >
+            This ticket was closed more than 2 weeks ago and has been archived.
+        </Alert>
+    );
+
     const headerActions = (
         <>
             {hasSupportRole && (
@@ -279,9 +312,10 @@ const TicketDetailPage: React.FC = () => {
                 <Button
                     variant="primary"
                     onClick={handleAssignToMeClick}
-                    disabled={supportLoading}
+                    disabled={supportLoading || assigningToMe}
+                    isLoading={assigningToMe}
                 >
-                    Assign to Me
+                    {assigningToMe ? 'Assigning...' : 'Assign to Me'}
                 </Button>
             )}
 
@@ -321,6 +355,8 @@ const TicketDetailPage: React.FC = () => {
                     This ticket is assigned to you
                 </Alert>
             )}
+
+            {archivedNotice}
 
             <div className="ticket-detail-layout">
                 <div className="ticket-detail-main">
@@ -391,6 +427,13 @@ const TicketDetailPage: React.FC = () => {
                                 <span className="ticket-info-label">Last Updated</span>
                                 <span className="ticket-info-value">{formatDateTime(currentTicket.updated_at)}</span>
                             </div>
+
+                            {isTicketArchived() && (
+                                <div className="ticket-info-item">
+                                    <span className="ticket-info-label">Status</span>
+                                    <span className="ticket-info-value archived-status">Archived</span>
+                                </div>
+                            )}
                         </div>
                     </Card>
 
@@ -432,13 +475,17 @@ const TicketDetailPage: React.FC = () => {
                                 <div className="ticket-unassigned-message">
                                     Not assigned to anyone
                                 </div>
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    onClick={hasSupportRole ? () => setShowUserSelectionModal(true) : handleAssignToMeClick}
-                                >
-                                    {hasSupportRole ? 'Assign User' : 'Assign to Me'}
-                                </Button>
+                                {!isTicketClosed && (
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={hasSupportRole ? () => setShowUserSelectionModal(true) : handleAssignToMeClick}
+                                        disabled={assigningToMe}
+                                        isLoading={assigningToMe}
+                                    >
+                                        {hasSupportRole ? 'Assign User' : 'Assign to Me'}
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </Card>
@@ -598,6 +645,7 @@ const TicketDetailPage: React.FC = () => {
                 onCancel={() => setShowAssignToMeConfirmation(false)}
                 confirmButtonText="Yes, Assign to Me"
                 cancelButtonText="Cancel"
+                isConfirming={assigningToMe}
             >
                 <p>
                     This ticket is currently assigned to <strong>{getDisplayName(currentTicket.assignee)}</strong>.

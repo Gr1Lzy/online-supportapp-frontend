@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
     CommentCreateRequestDto,
     PageDto,
@@ -8,16 +8,19 @@ import {
     TicketStatus,
     UserIdRequestDto
 } from '../../types';
-import { ticketService } from "../../api/services/ticket/ticketService";
-import { supportTicketService } from "../../api/services/ticket/supportTicketService";
-import { commentService } from "../../api/services/comment/commentService";
-import { handleApiError, setPending, setRejected } from '../../utils/reduxHelpers';
-import { RootState } from '../../store';
+import {ticketService} from "../../api/services/ticket/ticketService";
+import {supportTicketService} from "../../api/services/ticket/supportTicketService";
+import {commentService} from "../../api/services/comment/commentService";
+import {handleApiError, setPending, setRejected} from '../../utils/reduxHelpers';
+import {RootState} from '../../store';
 
 interface TicketState {
     tickets: TicketResponseDto[];
     myCreatedTickets: TicketResponseDto[];
     myAssignedTickets: TicketResponseDto[];
+    archivedTickets: TicketResponseDto[];
+    myCreatedArchivedTickets: TicketResponseDto[];
+    myAssignedArchivedTickets: TicketResponseDto[];
     currentTicket: TicketResponseDto | null;
     totalPages: number;
     currentPage: number;
@@ -26,12 +29,16 @@ interface TicketState {
     loading: boolean;
     error: string | null;
     currentFilter: TicketStatus | 'ALL';
+    showArchived: boolean;
 }
 
 const initialState: TicketState = {
     tickets: [],
     myCreatedTickets: [],
     myAssignedTickets: [],
+    archivedTickets: [],
+    myCreatedArchivedTickets: [],
+    myAssignedArchivedTickets: [],
     currentTicket: null,
     totalPages: 0,
     currentPage: 0,
@@ -40,6 +47,7 @@ const initialState: TicketState = {
     loading: false,
     error: null,
     currentFilter: 'ALL',
+    showArchived: false,
 };
 
 interface ThunkAPI {
@@ -55,7 +63,7 @@ const createTicketThunk = <TArg, TResult>(
 ) => {
     return createAsyncThunk<TResult, TArg>(
         typePrefix,
-        async (arg, { rejectWithValue, dispatch, getState }) => {
+        async (arg, {rejectWithValue, dispatch, getState}) => {
             try {
                 return await payloadCreator(arg, {
                     rejectWithValue,
@@ -74,26 +82,73 @@ export const fetchTickets = createTicketThunk<
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchAll',
-    async ({ page = 0, size = 10 }) => await ticketService.getAll(page, size),
+    async ({page = 0, size = 10}) => await ticketService.getAll(page, size),
     'Failed to fetch tickets'
 );
 
+export const fetchArchivedTickets = createTicketThunk<
+    {
+        page?: number;
+        size?: number
+    }
+    ,
+    PageDto<TicketResponseDto>
+>(
+    'tickets/fetchArchived',
+    async ({page = 0, size = 10}) => await ticketService.getArchivedTickets(page, size),
+    'Failed to fetch archived tickets'
+);
+
 export const fetchMyCreatedTickets = createTicketThunk<
-    { page?: number; size?: number },
+    {
+        page?: number;
+        size?: number
+    }
+    ,
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchMyCreated',
-    async ({ page = 0, size = 10 }) => await ticketService.getMyCreatedTickets(page, size),
+    async ({page = 0, size = 10}) => await ticketService.getMyCreatedTickets(page, size),
     'Failed to fetch your created tickets'
 );
 
+export const fetchMyCreatedArchivedTickets = createTicketThunk<
+    {
+        page?: number;
+        size?: number
+    }
+    ,
+    PageDto<TicketResponseDto>
+>(
+    'tickets/fetchMyCreatedArchived',
+    async ({page = 0, size = 10}) => await ticketService.getMyCreatedArchivedTickets(page, size),
+    'Failed to fetch your archived created tickets'
+);
+
 export const fetchMyAssignedTickets = createTicketThunk<
-    { page?: number; size?: number },
+    {
+        page?: number;
+        size?: number
+    }
+    ,
     PageDto<TicketResponseDto>
 >(
     'tickets/fetchMyAssigned',
-    async ({ page = 0, size = 10 }) => await ticketService.getMyAssignedTickets(page, size),
+    async ({page = 0, size = 10}) => await ticketService.getMyAssignedTickets(page, size),
     'Failed to fetch tickets assigned to you'
+);
+
+export const fetchMyAssignedArchivedTickets = createTicketThunk<
+    {
+        page?: number;
+        size?: number
+    }
+    ,
+    PageDto<TicketResponseDto>
+>(
+    'tickets/fetchMyAssignedArchived',
+    async ({page = 0, size = 10}) => await ticketService.getMyAssignedArchivedTickets(page, size),
+    'Failed to fetch archived tickets assigned to you'
 );
 
 export const fetchTicketById = createTicketThunk<
@@ -119,7 +174,7 @@ export const assignTicketToMe = createTicketThunk<
     string
 >(
     'tickets/assignToMe',
-    async (ticketId, { dispatch }) => {
+    async (ticketId, {dispatch}) => {
         await ticketService.assignTicketOnCurrentUser(ticketId);
         dispatch(fetchTicketById(ticketId));
         return ticketId;
@@ -128,14 +183,22 @@ export const assignTicketToMe = createTicketThunk<
 );
 
 export const assignTicketToUser = createTicketThunk<
-    { ticketId: string; userId: UserIdRequestDto },
-    { ticketId: string; userId: UserIdRequestDto }
->(
+    {
+        ticketId: string;
+        userId: UserIdRequestDto
+    }
+    ,
+    {
+        ticketId: string;
+        userId: UserIdRequestDto
+    }
+>
+(
     'tickets/assignToUser',
-    async ({ ticketId, userId }, { dispatch }) => {
+    async ({ticketId, userId}, {dispatch}) => {
         await supportTicketService.assignOnUser(ticketId, userId);
         dispatch(fetchTicketById(ticketId));
-        return { ticketId, userId };
+        return {ticketId, userId};
     },
     'Failed to assign ticket to user'
 );
@@ -145,7 +208,7 @@ export const unassignTicket = createTicketThunk<
     string
 >(
     'tickets/unassign',
-    async (ticketId, { dispatch }) => {
+    async (ticketId, {dispatch}) => {
         await supportTicketService.unassignUser(ticketId);
         dispatch(fetchTicketById(ticketId));
         return ticketId;
@@ -154,24 +217,36 @@ export const unassignTicket = createTicketThunk<
 );
 
 export const updateTicketStatus = createTicketThunk<
-    { ticketId: string; status: StatusRequestDto },
-    { ticketId: string; status: StatusRequestDto }
->(
+    {
+        ticketId: string;
+        status: StatusRequestDto
+    }
+    ,
+    {
+        ticketId: string;
+        status: StatusRequestDto
+    }
+>
+(
     'tickets/updateStatus',
-    async ({ ticketId, status }, { dispatch }) => {
+    async ({ticketId, status}, {dispatch}) => {
         await supportTicketService.updateStatus(ticketId, status);
         dispatch(fetchTicketById(ticketId));
-        return { ticketId, status };
+        return {ticketId, status};
     },
     'Failed to update ticket status'
 );
 
 export const addComment = createTicketThunk<
-    { ticketId: string; commentData: CommentCreateRequestDto },
+    {
+        ticketId: string;
+        commentData: CommentCreateRequestDto
+    }
+    ,
     void
 >(
     'tickets/addComment',
-    async ({ ticketId, commentData }, { dispatch }) => {
+    async ({ticketId, commentData}, {dispatch}) => {
         await commentService.addComment(ticketId, commentData);
         dispatch(fetchTicketById(ticketId));
     },
@@ -179,11 +254,15 @@ export const addComment = createTicketThunk<
 );
 
 export const updateComment = createTicketThunk<
-    { commentId: string; commentData: CommentCreateRequestDto },
+    {
+        commentId: string;
+        commentData: CommentCreateRequestDto
+    }
+    ,
     void
 >(
     'tickets/updateComment',
-    async ({ commentId, commentData }, { dispatch, getState }) => {
+    async ({commentId, commentData}, {dispatch, getState}) => {
         await commentService.updateComment(commentId, commentData);
         const state = getState();
         const ticketId = state.tickets.currentTicket?.id;
@@ -195,11 +274,15 @@ export const updateComment = createTicketThunk<
 );
 
 export const deleteComment = createTicketThunk<
-    { commentId: string; ticketId: string },
+    {
+        commentId: string;
+        ticketId: string
+    }
+    ,
     void
 >(
     'tickets/deleteComment',
-    async ({ commentId, ticketId }, { dispatch }) => {
+    async ({commentId, ticketId}, {dispatch}) => {
         await commentService.deleteComment(commentId);
         dispatch(fetchTicketById(ticketId));
     },
@@ -218,6 +301,9 @@ const ticketSlice = createSlice({
             state.tickets = [];
             state.myCreatedTickets = [];
             state.myAssignedTickets = [];
+            state.archivedTickets = [];
+            state.myCreatedArchivedTickets = [];
+            state.myAssignedArchivedTickets = [];
             state.currentTicket = null;
         },
 
@@ -232,6 +318,10 @@ const ticketSlice = createSlice({
 
         setStatusFilter: (state, action: PayloadAction<TicketStatus | 'ALL'>) => {
             state.currentFilter = action.payload;
+        },
+
+        toggleArchivedView: (state) => {
+            state.showArchived = !state.showArchived;
         }
     },
     extraReducers: (builder) => {
@@ -245,6 +335,23 @@ const ticketSlice = createSlice({
         });
         builder.addCase(fetchTickets.rejected, setRejected);
 
+        builder.addCase(fetchArchivedTickets.pending, setPending);
+        builder.addCase(fetchArchivedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+
+            if (action.payload.page === 0) {
+                state.archivedTickets = action.payload.content;
+            } else {
+                const existingIds = new Set(state.archivedTickets.map(ticket => ticket.id));
+                const newTickets = action.payload.content.filter(ticket => !existingIds.has(ticket.id));
+                state.archivedTickets = [...state.archivedTickets, ...newTickets];
+            }
+
+            state.currentPage = action.payload.page;
+            state.hasNext = action.payload.has_next;
+        });
+        builder.addCase(fetchArchivedTickets.rejected, setRejected);
+
         builder.addCase(fetchMyCreatedTickets.pending, setPending);
         builder.addCase(fetchMyCreatedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
             state.loading = false;
@@ -252,12 +359,26 @@ const ticketSlice = createSlice({
         });
         builder.addCase(fetchMyCreatedTickets.rejected, setRejected);
 
+        builder.addCase(fetchMyCreatedArchivedTickets.pending, setPending);
+        builder.addCase(fetchMyCreatedArchivedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+            state.myCreatedArchivedTickets = action.payload.content;
+        });
+        builder.addCase(fetchMyCreatedArchivedTickets.rejected, setRejected);
+
         builder.addCase(fetchMyAssignedTickets.pending, setPending);
         builder.addCase(fetchMyAssignedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
             state.loading = false;
             state.myAssignedTickets = action.payload.content;
         });
         builder.addCase(fetchMyAssignedTickets.rejected, setRejected);
+
+        builder.addCase(fetchMyAssignedArchivedTickets.pending, setPending);
+        builder.addCase(fetchMyAssignedArchivedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+            state.myAssignedArchivedTickets = action.payload.content;
+        });
+        builder.addCase(fetchMyAssignedArchivedTickets.rejected, setRejected);
 
         builder.addCase(fetchTicketById.pending, setPending);
         builder.addCase(fetchTicketById.fulfilled, (state, action: PayloadAction<TicketResponseDto>) => {
@@ -294,7 +415,8 @@ export const {
     clearCurrentTicket,
     clearTickets,
     updateAssignmentStatus,
-    setStatusFilter
+    setStatusFilter,
+    toggleArchivedView
 } = ticketSlice.actions;
 
 export default ticketSlice.reducer;

@@ -2,7 +2,6 @@ import clients from '../api/clients.ts';
 import {PageDto, TicketRequestDto, TicketResponseDto} from "../../../types";
 
 export const ticketService = {
-
     createTicket: async (ticket: TicketRequestDto): Promise<void> => {
         await clients.post<void>(`/api/tickets`, ticket);
     },
@@ -10,6 +9,12 @@ export const ticketService = {
     getAll: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
         const response =
             await clients.get<PageDto<TicketResponseDto>>(`/api/tickets?page=${page}&size=${size}`);
+        return response.data;
+    },
+
+    getArchivedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
+        const response =
+            await clients.get<PageDto<TicketResponseDto>>(`/api/tickets/archived?page=${page}&size=${size}`);
         return response.data;
     },
 
@@ -29,9 +34,21 @@ export const ticketService = {
         return response.data;
     },
 
+    getMyCreatedArchivedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
+        const response =
+            await clients.get<PageDto<TicketResponseDto>>(`/api/tickets/my-created/archived?page=${page}&size=${size}`);
+        return response.data;
+    },
+
     getMyAssignedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
         const response =
             await clients.get<PageDto<TicketResponseDto>>(`/api/tickets/my-assigned?page=${page}&size=${size}`);
+        return response.data;
+    },
+
+    getMyAssignedArchivedTickets: async (page: number = 0, size: number = 10): Promise<PageDto<TicketResponseDto>> => {
+        const response =
+            await clients.get<PageDto<TicketResponseDto>>(`/api/tickets/my-assigned/archived?page=${page}&size=${size}`);
         return response.data;
     }
 };

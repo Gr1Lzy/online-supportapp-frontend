@@ -106,6 +106,7 @@
     border-top-color: var(--color-warning);
 }
 
-.ticket-item[data-status="closed"] {
+.ticket-item[data-status="closed"],
+.ticket-item[data-status="closed_two_weeks"] {
     border-top-color: var(--color-danger);
 }

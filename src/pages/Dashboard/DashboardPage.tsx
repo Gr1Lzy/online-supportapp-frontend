@@ -1,20 +1,27 @@
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import {fetchMyAssignedTickets, fetchMyCreatedTickets} from '../../store/slices/ticketSlice';
-import {logout} from '../../store/slices/authSlice';
-import {fetchCurrentUser} from '../../store/slices/userSlice';
-import {AppDispatch, RootState} from '../../store';
-import {TicketResponseDto, TicketStatus, UserRole} from '../../types';
-import {hasAnyRole} from '../../utils/jwtUtils';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {
+    fetchMyAssignedTickets,
+    fetchMyCreatedTickets,
+    fetchArchivedTickets,
+    setStatusFilter
+} from '../../store/slices/ticketSlice';
+import { logout } from '../../store/slices/authSlice';
+import { fetchCurrentUser } from '../../store/slices/userSlice';
+import { AppDispatch, RootState } from '../../store';
+import { TicketResponseDto, TicketStatus, UserRole } from '../../types';
+import { hasAnyRole } from '../../utils/jwtUtils';
 
 import Container from '../../components/layout/Container/Container';
 import PageHeader from '../../components/layout/PageHeader/PageHeader';
 import Card from '../../components/ui/Card/Card';
 import Button from '../../components/ui/Button/Button';
-import TicketGrid from "../../components/modules/tickets/TicketGrid/TicketGrid.tsx";
+import TicketGrid from "../../components/modules/tickets/TicketGrid/TicketGrid";
 import Spinner from '../../components/ui/Spinner/Spinner';
 import Alert from '../../components/ui/Alert/Alert';
+import Tabs from '../../components/ui/Tabs/Tabs';
+import Tab from '../../components/ui/Tabs/Tab';
 
 import './DashboardPage.css';
 
@@ -22,12 +29,16 @@ const DashboardPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
-    const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>('ALL');
+    const [statusFilter, setStatusFilterState] = useState<TicketStatus | 'ALL'>('ALL');
+    const [viewMode, setViewMode] = useState<'active' | 'archived'>('active');
+    const [page, setPage] = useState(0);
+    const [size] = useState(20);
 
     const { currentUser, loading: userLoading } = useSelector((state: RootState) => state.user);
     const {
         myAssignedTickets,
         myCreatedTickets,
+        archivedTickets,
         loading: ticketsLoading,
         error
     } = useSelector((state: RootState) => state.tickets);
@@ -38,12 +49,19 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchCurrentUser());
-            dispatch(fetchMyAssignedTickets({ size: 50 }));
-            dispatch(fetchMyCreatedTickets({ size: 50 }));
+
+            if (viewMode === 'active') {
+                dispatch(fetchMyAssignedTickets({ page, size }));
+                dispatch(fetchMyCreatedTickets({ page, size }));
+            } else {
+                dispatch(fetchArchivedTickets({ page, size }));
+            }
+
+            dispatch(setStatusFilter(statusFilter));
         } else {
             navigate('/');
         }
-    }, [dispatch, isAuthenticated, navigate]);
+    }, [dispatch, isAuthenticated, navigate, statusFilter, viewMode, page, size]);
 
     const filterTickets = (tickets: TicketResponseDto[] = []): TicketResponseDto[] => {
         if (statusFilter === 'ALL') {
@@ -55,9 +73,15 @@ const DashboardPage: React.FC = () => {
 
     const filteredAssignedTickets = filterTickets(myAssignedTickets);
     const filteredCreatedTickets = filterTickets(myCreatedTickets);
+    const filteredArchivedTickets = filterTickets(archivedTickets);
 
     const handleFilterChange = (status: TicketStatus | 'ALL') => {
-        setStatusFilter(status);
+        setStatusFilterState(status);
+    };
+
+    const handleViewModeChange = (mode: 'active' | 'archived') => {
+        setViewMode(mode);
+        setPage(0);
     };
 
     const handleLogout = async () => {
@@ -69,9 +93,12 @@ const DashboardPage: React.FC = () => {
         navigate('/create-ticket');
     };
 
+    const handleLoadMore = () => {
+        setPage(prevPage => prevPage + 1);
+    };
+
     const getTicketCountsByStatus = () => {
         const allTickets = [...(myCreatedTickets || []), ...(myAssignedTickets || [])];
-
         const uniqueTickets = [...new Map(allTickets.map(ticket => [ticket.id, ticket])).values()];
 
         return {
@@ -79,11 +106,14 @@ const DashboardPage: React.FC = () => {
             opened: uniqueTickets.filter(ticket => ticket.status === TicketStatus.OPENED).length,
             inProgress: uniqueTickets.filter(ticket => ticket.status === TicketStatus.IN_PROGRESS).length,
             closed: uniqueTickets.filter(ticket => ticket.status === TicketStatus.CLOSED).length,
+            archived: archivedTickets?.length || 0,
         };
     };
 
     const ticketCounts = getTicketCountsByStatus();
-    const isEmptyDashboard = !filteredAssignedTickets.length && !filteredCreatedTickets.length;
+    const isEmptyDashboard = viewMode === 'active'
+        ? !filteredAssignedTickets.length && !filteredCreatedTickets.length
+        : !filteredArchivedTickets.length;
 
     if (userLoading || ticketsLoading) {
         return (
@@ -121,9 +151,25 @@ const DashboardPage: React.FC = () => {
                 </Alert>
             )}
 
+            <div className="dashboard-tabs">
+                <Tabs>
+                    <Tab
+                        id="active"
+                        label="Active Tickets"
+                        isActive={viewMode === 'active'}
+                        onClick={() => handleViewModeChange('active')}
+                    />
+                    <Tab
+                        id="archived"
+                        label="Archived Tickets"
+                        isActive={viewMode === 'archived'}
+                        onClick={() => handleViewModeChange('archived')}
+                    />
+                </Tabs>
+            </div>
+
             <div className="dashboard-layout">
                 <div className="dashboard-sidebar">
-
                     {/* Filter card */}
                     <Card className="filter-card">
                         <h3 className="filter-title">Filter by Status</h3>
@@ -234,49 +280,83 @@ const DashboardPage: React.FC = () => {
 
                     {isEmptyDashboard ? (
                         <Card className="empty-dashboard">
-
                             <h3>No {statusFilter !== 'ALL' ? `${statusFilter.toLowerCase()} ` : ''}tickets found</h3>
                             <p>
                                 {statusFilter !== 'ALL'
                                     ? `You don't have any ${statusFilter.toLowerCase()} tickets. Try changing the filter or create a new ticket.`
-                                    : `You don't have any tickets assigned to you or created by you. Get started by creating your first support ticket.`
+                                    : viewMode === 'active'
+                                        ? `You don't have any tickets assigned to you or created by you. Get started by creating your first support ticket.`
+                                        : `You don't have any archived tickets. Closed tickets older than 2 weeks are automatically archived.`
                                 }
                             </p>
-                            <Button onClick={handleCreateTicket}>Create Your First Ticket</Button>
+                            {viewMode === 'active' && (
+                                <Button onClick={handleCreateTicket}>Create Your First Ticket</Button>
+                            )}
                         </Card>
                     ) : (
                         <div className="ticket-sections">
-                            {/* Assigned tickets section */}
-                            {filteredAssignedTickets.length > 0 && (
+                            {viewMode === 'active' ? (
+                                <>
+                                    {/* Assigned tickets section */}
+                                    {filteredAssignedTickets.length > 0 && (
+                                        <div className="ticket-section">
+                                            <h2 className="section-title">
+                                                Tickets Assigned to Me {statusFilter !== 'ALL'
+                                                ? `(${statusFilter})`
+                                                : ''}
+                                            </h2>
+                                            <TicketGrid
+                                                tickets={filteredAssignedTickets}
+                                                emptyMessage={`You don't have any ${statusFilter !== 'ALL'
+                                                    ? statusFilter.toLowerCase() + ' '
+                                                    : ''}tickets assigned to you`}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Created tickets section */}
+                                    <div className="ticket-section">
+                                        <h2 className="section-title">
+                                            Tickets Created by Me {statusFilter !== 'ALL'
+                                            ? `(${statusFilter})`
+                                            : ''}
+                                        </h2>
+                                        <TicketGrid
+                                            tickets={filteredCreatedTickets}
+                                            emptyMessage={`You haven't created any ${statusFilter !== 'ALL'
+                                                ? statusFilter.toLowerCase() + ' '
+                                                : ''}tickets yet`}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
                                 <div className="ticket-section">
                                     <h2 className="section-title">
-                                        Tickets Assigned to Me {statusFilter !== 'ALL'
+                                        Archived Tickets {statusFilter !== 'ALL'
                                         ? `(${statusFilter})`
                                         : ''}
                                     </h2>
                                     <TicketGrid
-                                        tickets={filteredAssignedTickets}
-                                        emptyMessage={`You don't have any ${statusFilter !== 'ALL'
+                                        tickets={filteredArchivedTickets}
+                                        emptyMessage={`No archived ${statusFilter !== 'ALL'
                                             ? statusFilter.toLowerCase() + ' '
-                                            : ''}tickets assigned to you`}
+                                            : ''}tickets found`}
                                     />
+
+                                    {/* Load more button for archived tickets */}
+                                    {filteredArchivedTickets.length > 0 && (
+                                        <div className="load-more-container">
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleLoadMore}
+                                                className="load-more-button"
+                                            >
+                                                Load More Tickets
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-
-                            {/* Created tickets section */}
-                            <div className="ticket-section">
-                                <h2 className="section-title">
-                                    Tickets Created by Me {statusFilter !== 'ALL'
-                                    ? `(${statusFilter})`
-                                    : ''}
-                                </h2>
-                                <TicketGrid
-                                    tickets={filteredCreatedTickets}
-                                    emptyMessage={`You haven't created any ${statusFilter !== 'ALL'
-                                        ? statusFilter.toLowerCase() + ' '
-                                        : ''}tickets yet`}
-                                />
-                            </div>
                         </div>
                     )}
                 </div>

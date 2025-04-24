@@ -1,3 +1,4 @@
+// src/components/modules/tickets/TicketItem/TicketItem.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../../ui/Card/Card';
@@ -40,11 +41,14 @@ const TicketItem: React.FC<TicketItemProps> = ({
             : user.username;
     };
 
+    const statusClass = ticket.status.toLowerCase();
+
     return (
         <Card
-            className={`ticket-item ${className}`}
+            className={`ticket-item ${className} ticket-item-${statusClass}`}
             interactive={true}
             onClick={handleClick}
+            data-status={statusClass}
         >
             <div className="ticket-item-status">
                 <StatusBadge status={ticket.status} />
