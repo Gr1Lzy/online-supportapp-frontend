@@ -1,12 +1,19 @@
 import clients from '../api/clients.ts';
 import {PageDto, PasswordRequestDto, UserResponseDto} from "../../../types";
+import { index } from "../../../store";
+import { logout } from "../../../store/slices/authSlice";
 
 export const userService = {
 
     getCurrentUser: async (): Promise<UserResponseDto> => {
-        const response =
-            await clients.get<UserResponseDto>('/user-service/api/users/me');
-        return response.data;
+        try {
+            const response = await clients.get<UserResponseDto>('/user-service/api/users/me');
+            return response.data;
+        } catch (error) {
+            index.dispatch(logout());
+            window.location.href = '/';
+            throw error;
+        }
     },
 
     getUserById: async (id: string): Promise<UserResponseDto> => {

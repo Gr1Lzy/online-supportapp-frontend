@@ -8,6 +8,11 @@
     background-color: var(--color-primary-light);
     color: white;
     font-weight: 600;
+    text-transform: uppercase;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* Avatar shapes */
@@ -61,6 +66,7 @@
 /* Avatar initials */
 .avatar-initials {
     line-height: 1;
+    letter-spacing: 0.05em;
 }
 
 /* Avatar group styles */

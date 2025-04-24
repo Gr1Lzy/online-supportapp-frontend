@@ -77,12 +77,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
             <div className="comment-header">
                 <div className="comment-author">
                     <Avatar
-                        name={comment.author?.username || 'Unknown'}
+                        name={getDisplayName(comment.author)}
                         size="sm"
                     />
                     <span className="comment-author-name">
-            {getDisplayName(comment.author)}
-          </span>
+                        {getDisplayName(comment.author)}
+                    </span>
                 </div>
 
                 <div className="comment-meta">

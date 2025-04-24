@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { login } from '../../store/slices/authSlice';
@@ -25,10 +25,23 @@ const validationSchema = Yup.object({
 const LoginPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
     const [showPassword, setShowPassword] = useState(false);
+    const [urlError, setUrlError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const errorParam = params.get('error');
+
+        if (errorParam === 'session_expired') {
+            setUrlError('Your session has expired. Please log in again.');
+        } else if (errorParam === 'auth_error') {
+            setUrlError('Authentication error. Please log in again.');
+        }
+    }, [location]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -69,7 +82,7 @@ const LoginPage: React.FC = () => {
                     <h1 className="login-title">Welcome to Support App</h1>
                     <p className="login-subtitle">Sign in to your account to continue</p>
 
-                    {error && (
+                    {(error || urlError) && (
                         <Alert
                             variant="danger"
                             icon={
@@ -79,7 +92,7 @@ const LoginPage: React.FC = () => {
                             }
                             className="login-error"
                         >
-                            {error}
+                            {urlError || error}
                         </Alert>
                     )}
 
