@@ -13,7 +13,7 @@ import Button from '../../components/ui/Button/Button';
 import Alert from '../../components/ui/Alert/Alert';
 import Spinner from '../../components/ui/Spinner/Spinner';
 import AdminUserList from '../../components/common/AdminUserList/AdminUserList';
-import UserRegistrationForm from '../UserRegistrationForm/UserRegistrationForm';
+import UserRegistrationForm from '../../components/common/UserRegistrationForm/UserRegistrationForm';
 import Tabs from '../../components/ui/Tabs/Tabs';
 import Tab from '../../components/ui/Tabs/Tab';
 

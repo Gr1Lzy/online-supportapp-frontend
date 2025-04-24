@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { registerUser } from '../../store/slices/adminSlice';
-import { AppDispatch, RootState } from '../../store';
-import { UserCreateRequestDto } from '../../types';
 
-import Card from '../../components/ui/Card/Card';
-import Button from '../../components/ui/Button/Button';
-import FormField from '../../components/ui/Form/FormField';
-import TextInput from '../../components/ui/Form/TextInput';
-import Alert from '../../components/ui/Alert/Alert';
 
 import './UserRegistrationForm.css';
+import { AppDispatch, RootState } from '../../../store';
+import {UserCreateRequestDto} from "../../../types";
+import { registerUser } from '../../../store/slices/adminSlice';
+import Card from "../../ui/Card/Card.tsx";
+import Alert from "../../ui/Alert/Alert.tsx";
+import FormField from "../../ui/Form/FormField.tsx";
+import TextInput from "../../ui/Form/TextInput.tsx";
+import Button from "../../ui/Button/Button.tsx";
 
 interface UserRegistrationFormProps {
     onSuccess?: () => void;
