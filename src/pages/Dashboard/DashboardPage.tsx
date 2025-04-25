@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import {
     fetchMyAssignedTickets,
     fetchMyCreatedTickets,
-    fetchArchivedTickets,
+    fetchMyAssignedArchivedTickets,
+    fetchMyCreatedArchivedTickets,
     setStatusFilter
 } from '../../store/slices/ticketSlice';
 import { logout } from '../../store/slices/authSlice';
@@ -38,7 +39,8 @@ const DashboardPage: React.FC = () => {
     const {
         myAssignedTickets,
         myCreatedTickets,
-        archivedTickets,
+        myAssignedArchivedTickets,
+        myCreatedArchivedTickets,
         loading: ticketsLoading,
         error
     } = useSelector((state: RootState) => state.tickets);
@@ -54,7 +56,8 @@ const DashboardPage: React.FC = () => {
                 dispatch(fetchMyAssignedTickets({ page, size }));
                 dispatch(fetchMyCreatedTickets({ page, size }));
             } else {
-                dispatch(fetchArchivedTickets({ page, size }));
+                dispatch(fetchMyAssignedArchivedTickets({ page, size }));
+                dispatch(fetchMyCreatedArchivedTickets({ page, size }));
             }
 
             dispatch(setStatusFilter(statusFilter));
@@ -67,13 +70,13 @@ const DashboardPage: React.FC = () => {
         if (statusFilter === 'ALL') {
             return tickets;
         }
-
         return tickets.filter(ticket => ticket.status === statusFilter);
     };
 
     const filteredAssignedTickets = filterTickets(myAssignedTickets);
     const filteredCreatedTickets = filterTickets(myCreatedTickets);
-    const filteredArchivedTickets = filterTickets(archivedTickets);
+    const filteredAssignedArchivedTickets = filterTickets(myAssignedArchivedTickets);
+    const filteredCreatedArchivedTickets = filterTickets(myCreatedArchivedTickets);
 
     const handleFilterChange = (status: TicketStatus | 'ALL') => {
         setStatusFilterState(status);
@@ -98,22 +101,33 @@ const DashboardPage: React.FC = () => {
     };
 
     const getTicketCountsByStatus = () => {
-        const allTickets = [...(myCreatedTickets || []), ...(myAssignedTickets || [])];
-        const uniqueTickets = [...new Map(allTickets.map(ticket => [ticket.id, ticket])).values()];
+        if (viewMode === 'active') {
+            const allTickets = [...(myCreatedTickets || []), ...(myAssignedTickets || [])];
+            const uniqueTickets = [...new Map(allTickets.map(ticket => [ticket.id, ticket])).values()];
 
-        return {
-            total: uniqueTickets.length,
-            opened: uniqueTickets.filter(ticket => ticket.status === TicketStatus.OPENED).length,
-            inProgress: uniqueTickets.filter(ticket => ticket.status === TicketStatus.IN_PROGRESS).length,
-            closed: uniqueTickets.filter(ticket => ticket.status === TicketStatus.CLOSED).length,
-            archived: archivedTickets?.length || 0,
-        };
+            return {
+                total: uniqueTickets.length,
+                opened: uniqueTickets.filter(ticket => ticket.status === TicketStatus.OPENED).length,
+                inProgress: uniqueTickets.filter(ticket => ticket.status === TicketStatus.IN_PROGRESS).length,
+                closed: uniqueTickets.filter(ticket => ticket.status === TicketStatus.CLOSED).length,
+            };
+        } else {
+            const allArchivedTickets = [...(myCreatedArchivedTickets || []), ...(myAssignedArchivedTickets || [])];
+            const uniqueArchivedTickets = [...new Map(allArchivedTickets.map(ticket => [ticket.id, ticket])).values()];
+
+            return {
+                total: uniqueArchivedTickets.length,
+                opened: uniqueArchivedTickets.filter(ticket => ticket.status === TicketStatus.OPENED).length,
+                inProgress: uniqueArchivedTickets.filter(ticket => ticket.status === TicketStatus.IN_PROGRESS).length,
+                closed: uniqueArchivedTickets.filter(ticket => ticket.status === TicketStatus.CLOSED).length,
+            };
+        }
     };
 
     const ticketCounts = getTicketCountsByStatus();
     const isEmptyDashboard = viewMode === 'active'
         ? !filteredAssignedTickets.length && !filteredCreatedTickets.length
-        : !filteredArchivedTickets.length;
+        : !filteredAssignedArchivedTickets.length && !filteredCreatedArchivedTickets.length;
 
     if (userLoading || ticketsLoading) {
         return (
@@ -244,7 +258,7 @@ const DashboardPage: React.FC = () => {
                                 </svg>
                             </div>
                             <div className="stat-card-number">{ticketCounts.total}</div>
-                            <div className="stat-card-title">Total Tickets</div>
+                            <div className="stat-card-title">{viewMode === 'active' ? 'Active Tickets' : 'Archived Tickets'}</div>
                         </Card>
 
                         <Card className="stat-card">
@@ -286,7 +300,7 @@ const DashboardPage: React.FC = () => {
                                     ? `You don't have any ${statusFilter.toLowerCase()} tickets. Try changing the filter or create a new ticket.`
                                     : viewMode === 'active'
                                         ? `You don't have any tickets assigned to you or created by you. Get started by creating your first support ticket.`
-                                        : `You don't have any archived tickets. Closed tickets older than 2 weeks are automatically archived.`
+                                        : `You don't have any archived tickets. Tickets that are older than 2 weeks are automatically archived.`
                                 }
                             </p>
                             {viewMode === 'active' && (
@@ -330,21 +344,41 @@ const DashboardPage: React.FC = () => {
                                     </div>
                                 </>
                             ) : (
-                                <div className="ticket-section">
-                                    <h2 className="section-title">
-                                        Archived Tickets {statusFilter !== 'ALL'
-                                        ? `(${statusFilter})`
-                                        : ''}
-                                    </h2>
-                                    <TicketGrid
-                                        tickets={filteredArchivedTickets}
-                                        emptyMessage={`No archived ${statusFilter !== 'ALL'
-                                            ? statusFilter.toLowerCase() + ' '
-                                            : ''}tickets found`}
-                                    />
+                                <>
+                                    {/* Archived assigned tickets section */}
+                                    {filteredAssignedArchivedTickets.length > 0 && (
+                                        <div className="ticket-section">
+                                            <h2 className="section-title">
+                                                Archived Tickets Assigned to Me {statusFilter !== 'ALL'
+                                                ? `(${statusFilter})`
+                                                : ''}
+                                            </h2>
+                                            <TicketGrid
+                                                tickets={filteredAssignedArchivedTickets}
+                                                emptyMessage={`No archived ${statusFilter !== 'ALL'
+                                                    ? statusFilter.toLowerCase() + ' '
+                                                    : ''}tickets assigned to you`}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Archived created tickets section */}
+                                    <div className="ticket-section">
+                                        <h2 className="section-title">
+                                            Archived Tickets Created by Me {statusFilter !== 'ALL'
+                                            ? `(${statusFilter})`
+                                            : ''}
+                                        </h2>
+                                        <TicketGrid
+                                            tickets={filteredCreatedArchivedTickets}
+                                            emptyMessage={`No archived ${statusFilter !== 'ALL'
+                                                ? statusFilter.toLowerCase() + ' '
+                                                : ''}tickets created by you`}
+                                        />
+                                    </div>
 
                                     {/* Load more button for archived tickets */}
-                                    {filteredArchivedTickets.length > 0 && (
+                                    {(filteredAssignedArchivedTickets.length > 0 || filteredCreatedArchivedTickets.length > 0) && (
                                         <div className="load-more-container">
                                             <Button
                                                 variant="outline"
@@ -355,7 +389,7 @@ const DashboardPage: React.FC = () => {
                                             </Button>
                                         </div>
                                     )}
-                                </div>
+                                </>
                             )}
                         </div>
                     )}

@@ -7,8 +7,7 @@ export enum UserRole {
 export enum TicketStatus {
     OPENED = "OPENED",
     IN_PROGRESS = "IN_PROGRESS",
-    CLOSED = "CLOSED",
-    CLOSED_TWO_WEEKS = "CLOSED_TWO_WEEKS"
+    CLOSED = "CLOSED"
 }
 
 export interface PageDto<T> {

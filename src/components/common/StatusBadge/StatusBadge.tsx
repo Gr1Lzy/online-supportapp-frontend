@@ -28,7 +28,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
                     text: 'In Progress',
                 };
             case TicketStatus.CLOSED:
-            case TicketStatus.CLOSED_TWO_WEEKS:
                 return {
                     variant: 'danger' as const,
                     text: 'Closed',

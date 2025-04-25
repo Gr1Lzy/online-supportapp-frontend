@@ -8,6 +8,7 @@ import {fetchTicketById} from "./ticketSlice.ts";
 
 interface SupportState {
     allTickets: TicketResponseDto[];
+    archivedTickets: TicketResponseDto[];
     users: UserResponseDto[];
     totalPages: number;
     currentPage: number;
@@ -20,6 +21,7 @@ interface SupportState {
 
 const initialState: SupportState = {
     allTickets: [],
+    archivedTickets: [],
     users: [],
     totalPages: 0,
     currentPage: 0,
@@ -37,6 +39,17 @@ export const fetchAllTickets = createAsyncThunk(
             return await ticketService.getAll(page, size);
         } catch (error: any) {
             return rejectWithValue(handleApiError(error, 'Failed to fetch tickets'));
+        }
+    }
+);
+
+export const fetchAllArchivedTickets = createAsyncThunk(
+    'support/fetchAllArchivedTickets',
+    async ({ page = 0, size = 10 }: { page?: number; size?: number }, { rejectWithValue }) => {
+        try {
+            return await ticketService.getArchivedTickets(page, size);
+        } catch (error: any) {
+            return rejectWithValue(handleApiError(error, 'Failed to fetch archived tickets'));
         }
     }
 );
@@ -101,6 +114,9 @@ const supportSlice = createSlice({
         clearAllTickets: (state) => {
             state.allTickets = [];
         },
+        clearArchivedTickets: (state) => {
+            state.archivedTickets = [];
+        },
         clearUsers: (state) => {
             state.users = [];
         },
@@ -124,6 +140,25 @@ const supportSlice = createSlice({
             state.hasNext = action.payload.has_next;
         });
         builder.addCase(fetchAllTickets.rejected, setRejected);
+
+        builder.addCase(fetchAllArchivedTickets.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(fetchAllArchivedTickets.fulfilled, (state, action: PayloadAction<PageDto<TicketResponseDto>>) => {
+            state.loading = false;
+            if (action.payload.page === 0) {
+                state.archivedTickets = action.payload.content;
+            } else {
+                const existingIds = new Set(state.archivedTickets.map(ticket => ticket.id));
+                const newTickets = action.payload.content.filter(ticket => !existingIds.has(ticket.id));
+                state.archivedTickets = [...state.archivedTickets, ...newTickets];
+            }
+            state.currentPage = action.payload.page;
+            state.pageSize = action.payload.size;
+            state.hasNext = action.payload.has_next;
+        });
+        builder.addCase(fetchAllArchivedTickets.rejected, setRejected);
 
         builder.addCase(fetchUsers.pending, (state) => {
             state.loadingUsers = true;
@@ -151,5 +186,5 @@ const supportSlice = createSlice({
     }
 });
 
-export const { clearAllTickets, clearUsers } = supportSlice.actions;
+export const { clearAllTickets, clearArchivedTickets, clearUsers } = supportSlice.actions;
 export default supportSlice.reducer;

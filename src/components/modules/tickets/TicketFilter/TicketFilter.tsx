@@ -2,13 +2,15 @@ import { formatTicketStatus } from "../../../../utils/formatters";
 import './TicketFilter.css';
 import { TicketStatus } from "../../../../types";
 
+type FilterOption = TicketStatus | 'ALL' | 'ARCHIVED';
+
 interface TicketFilterProps {
-    onFilterChange: (status: TicketStatus | 'ALL') => void;
-    currentFilter: TicketStatus | 'ALL';
+    onFilterChange: (status: FilterOption) => void;
+    currentFilter: FilterOption;
 }
 
 const TicketFilter = ({ onFilterChange, currentFilter }: TicketFilterProps) => {
-    const handleFilterClick = (status: TicketStatus | 'ALL') => {
+    const handleFilterClick = (status: FilterOption) => {
         onFilterChange(status);
     };
 
@@ -20,7 +22,7 @@ const TicketFilter = ({ onFilterChange, currentFilter }: TicketFilterProps) => {
                     className={`filter-button ${currentFilter === 'ALL' ? 'active' : ''}`}
                     onClick={() => handleFilterClick('ALL')}
                 >
-                    All Tickets
+                    All Active Tickets
                 </button>
                 <button
                     className={`filter-button ${currentFilter === TicketStatus.OPENED ? 'active' : ''}`}
@@ -39,6 +41,12 @@ const TicketFilter = ({ onFilterChange, currentFilter }: TicketFilterProps) => {
                     onClick={() => handleFilterClick(TicketStatus.CLOSED)}
                 >
                     {formatTicketStatus(TicketStatus.CLOSED)}
+                </button>
+                <button
+                    className={`filter-button ${currentFilter === 'ARCHIVED' ? 'active' : ''}`}
+                    onClick={() => handleFilterClick('ARCHIVED')}
+                >
+                    Archived
                 </button>
             </div>
         </div>

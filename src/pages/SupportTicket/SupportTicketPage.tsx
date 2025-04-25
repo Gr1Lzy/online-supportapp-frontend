@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchAllTickets } from '../../store/slices/supportSlice';
+import { fetchAllTickets, fetchAllArchivedTickets } from '../../store/slices/supportSlice';
 import { AppDispatch, RootState } from '../../store';
 import TicketGrid from '../../components/modules/tickets/TicketGrid/TicketGrid';
 import TicketFilter from '../../components/modules/tickets/TicketFilter/TicketFilter';
@@ -11,15 +11,17 @@ import { hasAnyRole } from '../../utils/jwtUtils';
 import './SupportTicketPage.css';
 import Button from "../../components/ui/Button/Button.tsx";
 
+type FilterOption = TicketStatus | 'ALL' | 'ARCHIVED';
+
 const SupportTicketPage = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
 
-    const [statusFilter, setStatusFilter] = useState<TicketStatus | 'ALL'>('ALL');
+    const [statusFilter, setStatusFilter] = useState<FilterOption>('ALL');
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize] = useState(12);
 
-    const { allTickets, loading, error, hasNext } = useSelector((state: RootState) => state.support);
+    const { allTickets, archivedTickets, loading, error, hasNext } = useSelector((state: RootState) => state.support);
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
@@ -35,11 +37,19 @@ const SupportTicketPage = () => {
             return;
         }
 
-        dispatch(fetchAllTickets({ page: currentPage, size: pageSize }));
-    }, [dispatch, isAuthenticated, navigate, currentPage, pageSize]);
+        if (statusFilter === 'ARCHIVED') {
+            dispatch(fetchAllArchivedTickets({ page: currentPage, size: pageSize }));
+        } else {
+            dispatch(fetchAllTickets({ page: currentPage, size: pageSize }));
+        }
+    }, [dispatch, isAuthenticated, navigate, currentPage, pageSize, statusFilter]);
 
     const filterTickets = (tickets: TicketResponseDto[] | undefined): TicketResponseDto[] => {
         if (!tickets) return [];
+
+        if (statusFilter === 'ARCHIVED') {
+            return tickets;
+        }
 
         if (statusFilter === 'ALL') {
             return tickets;
@@ -48,10 +58,12 @@ const SupportTicketPage = () => {
         return tickets.filter(ticket => ticket.status === statusFilter);
     };
 
-    const filteredTickets = filterTickets(allTickets);
+    const ticketsToDisplay = statusFilter === 'ARCHIVED' ? archivedTickets : allTickets;
+    const filteredTickets = filterTickets(ticketsToDisplay);
 
-    const handleFilterChange = (status: TicketStatus | 'ALL') => {
+    const handleFilterChange = (status: FilterOption) => {
         setStatusFilter(status);
+        setCurrentPage(0);
     };
 
     const handleBackToDashboard = () => {
@@ -65,6 +77,30 @@ const SupportTicketPage = () => {
     };
 
     const isEmptyTickets = !filteredTickets?.length;
+
+    const getFilterTitle = () => {
+        if (statusFilter === 'ARCHIVED') {
+            return 'Archived Support Tickets';
+        }
+
+        if (statusFilter === 'ALL') {
+            return 'All Active Support Tickets';
+        }
+
+        return `Support Tickets (${formatTicketStatus(statusFilter as TicketStatus)})`;
+    };
+
+    const getEmptyMessage = () => {
+        if (statusFilter === 'ALL') {
+            return 'No active tickets are currently available in the system.';
+        }
+
+        if (statusFilter === 'ARCHIVED') {
+            return 'No archived tickets found. Tickets are automatically archived after 2 weeks.';
+        }
+
+        return `No ${formatTicketStatus(statusFilter as TicketStatus).toLowerCase()} tickets are available. Try changing the filter.`;
+    };
 
     return (
         <div className="support-ticket-container">
@@ -89,7 +125,7 @@ const SupportTicketPage = () => {
                 </aside>
 
                 <main className="support-content">
-                    {loading && allTickets.length === 0 ? (
+                    {loading && ticketsToDisplay.length === 0 ? (
                         <div className="loading-container">
                             <div className="loading-spinner"></div>
                         </div>
@@ -99,24 +135,15 @@ const SupportTicketPage = () => {
                         </div>
                     ) : isEmptyTickets ? (
                         <div className="empty-support">
-                            <h3>No {statusFilter !== 'ALL' ? `${statusFilter.toLowerCase()} ` : ''}tickets found</h3>
-                            <p>
-                                {statusFilter !== 'ALL'
-                                    ? `No ${formatTicketStatus(statusFilter as TicketStatus).toLowerCase()} tickets are available. Try changing the filter.`
-                                    : 'No tickets are currently available in the system.'
-                                }
-                            </p>
+                            <h3>No tickets found</h3>
+                            <p>{getEmptyMessage()}</p>
                         </div>
                     ) : (
                         <>
                             <TicketGrid
                                 tickets={filteredTickets}
-                                title={`All Support Tickets ${statusFilter !== 'ALL'
-                                    ? `(${formatTicketStatus(statusFilter as TicketStatus)})`
-                                    : ''}`}
-                                emptyMessage={`No ${statusFilter !== 'ALL'
-                                    ? statusFilter.toLowerCase() + ' '
-                                    : ''}tickets available`}
+                                title={getFilterTitle()}
+                                emptyMessage={getEmptyMessage()}
                             />
 
                             {hasNext && (

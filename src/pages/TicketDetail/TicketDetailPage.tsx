@@ -6,7 +6,7 @@ import {
     addComment,
     updateComment,
     deleteComment,
-    assignTicketToMe // Import the correct action
+    assignTicketToMe
 } from '../../store/slices/ticketSlice';
 import {
     assignTicketToUser,
@@ -53,6 +53,8 @@ const TicketDetailPage: React.FC = () => {
     const { users, loading: supportLoading, loadingUsers } = useSelector((state: RootState) => state.support);
 
     const hasSupportRole = hasAnyRole([UserRole.SUPPORT, UserRole.ADMIN]);
+    const isTicketCreator = currentUser?.id === currentTicket?.reporter?.id;
+    const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -86,6 +88,10 @@ const TicketDetailPage: React.FC = () => {
         navigate('/dashboard');
     };
 
+    const handleBackToSupportPage = () => {
+        navigate('/support/tickets');
+    };
+
     const handleAssignToMeClick = () => {
         if (!currentUser || !ticketId) return;
 
@@ -103,10 +109,7 @@ const TicketDetailPage: React.FC = () => {
             setOperationError(null);
             setAssigningToMe(true);
 
-            // Use the correct action from ticketSlice
             await dispatch(assignTicketToMe(ticketId)).unwrap();
-
-            // Refresh ticket data after assignment
             await dispatch(fetchTicketById(ticketId)).unwrap();
             setShowAssignToMeConfirmation(false);
         } catch (error: any) {
@@ -213,21 +216,6 @@ const TicketDetailPage: React.FC = () => {
         }
     };
 
-    const isTicketClosed = currentTicket?.status === TicketStatus.CLOSED;
-
-    // Calculate if ticket is archived (closed more than 2 weeks ago)
-    const isTicketArchived = () => {
-        if (!currentTicket || currentTicket.status !== TicketStatus.CLOSED) {
-            return false;
-        }
-
-        const closedDate = new Date(currentTicket.updated_at);
-        const twoWeeksAgo = new Date();
-        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-        return closedDate < twoWeeksAgo;
-    };
-
     const getDisplayName = (user: any) => {
         if (!user) return 'Unknown';
         return user.first_name && user.last_name
@@ -266,17 +254,6 @@ const TicketDetailPage: React.FC = () => {
         );
     }
 
-    // Show archived notice if applicable
-    const archivedNotice = isTicketArchived() && (
-        <Alert
-            variant="warning"
-            title="Archived Ticket"
-            className="mb-4"
-        >
-            This ticket was closed more than 2 weeks ago and has been archived.
-        </Alert>
-    );
-
     const headerActions = (
         <>
             {hasSupportRole && (
@@ -307,8 +284,8 @@ const TicketDetailPage: React.FC = () => {
                 </>
             )}
 
-            {/* Regular user - assign to me button */}
-            {!hasSupportRole && !isTicketClosed && !isAssignedToMe && (
+            {/* Support for ticket creators to assign tickets */}
+            {isTicketCreator && !hasSupportRole && !isTicketClosed && !isAssignedToMe && (
                 <Button
                     variant="primary"
                     onClick={handleAssignToMeClick}
@@ -319,6 +296,14 @@ const TicketDetailPage: React.FC = () => {
                 </Button>
             )}
 
+            {hasSupportRole && (
+                <Button
+                    variant="outline"
+                    onClick={handleBackToSupportPage}
+                >
+                    Back to Support
+                </Button>
+            )}
             <Button
                 variant="outline"
                 onClick={handleBackToDashboard}
@@ -355,8 +340,6 @@ const TicketDetailPage: React.FC = () => {
                     This ticket is assigned to you
                 </Alert>
             )}
-
-            {archivedNotice}
 
             <div className="ticket-detail-layout">
                 <div className="ticket-detail-main">
@@ -428,7 +411,7 @@ const TicketDetailPage: React.FC = () => {
                                 <span className="ticket-info-value">{formatDateTime(currentTicket.updated_at)}</span>
                             </div>
 
-                            {isTicketArchived() && (
+                            {(
                                 <div className="ticket-info-item">
                                     <span className="ticket-info-label">Status</span>
                                     <span className="ticket-info-value archived-status">Archived</span>
