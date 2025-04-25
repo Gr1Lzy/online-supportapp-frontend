@@ -39,7 +39,6 @@ export const registerUser = createAsyncThunk(
         try {
             await authApi.register(userData);
 
-            // Refresh user list
             await dispatch(fetchAdminUsers({ page: 0, size: 10 }));
 
             return { success: true };

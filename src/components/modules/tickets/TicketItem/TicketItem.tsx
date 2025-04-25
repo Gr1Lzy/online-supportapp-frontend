@@ -1,4 +1,3 @@
-// src/components/modules/tickets/TicketItem/TicketItem.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../../ui/Card/Card';
